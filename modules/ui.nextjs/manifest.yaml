@@ -1,2 +1,29 @@
 id: ui.nextjs
 title: Next.js chat UI
+tree: true
+node_deps:
+  next: ""
+  react: ""
+  react-dom: ""
+  react-markdown: ""
+  remark-gfm: ""
+  "@phosphor-icons/react": ""
+node_dev_deps:
+  typescript: ""
+  "@types/node": ""
+  "@types/react": ""
+  "@types/react-dom": ""
+  tailwindcss: ""
+  "@tailwindcss/postcss": ""
+  eslint: ""
+  eslint-config-next: ""
+compose:
+  services:
+    frontend:
+      build: ./frontend
+      environment:
+        BACKEND_URL: http://backend:8000
+      ports: ["{{ deploy.frontend_port }}:3000"]
+      depends_on:
+        backend:
+          condition: service_healthy
