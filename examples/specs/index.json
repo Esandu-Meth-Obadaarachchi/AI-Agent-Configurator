@@ -1,0 +1,89 @@
+[
+  {
+    "id": "blank",
+    "title": "Single agent",
+    "blurb": "One agent, ready for tools. The smallest useful loop.",
+    "tags": [
+      "starter"
+    ],
+    "level": "beginner",
+    "file": "blank.json"
+  },
+  {
+    "id": "rag-starter",
+    "title": "RAG pipeline",
+    "blurb": "Always retrieve, then answer with citations. Local embeddings, no second key.",
+    "tags": [
+      "rag"
+    ],
+    "level": "beginner",
+    "file": "rag-starter.json"
+  },
+  {
+    "id": "docs-qa",
+    "title": "Docs Q&A agent",
+    "blurb": "An agent that searches your documents when it needs to, with memory.",
+    "tags": [
+      "rag",
+      "memory"
+    ],
+    "level": "beginner",
+    "file": "docs-qa.json"
+  },
+  {
+    "id": "support-bot",
+    "title": "Support desk",
+    "blurb": "Guardrail, router, two specialist agents and a human approval for refunds.",
+    "tags": [
+      "router",
+      "approval",
+      "rag"
+    ],
+    "level": "intermediate",
+    "file": "support-bot.json"
+  },
+  {
+    "id": "research-team",
+    "title": "Research team",
+    "blurb": "A supervisor delegates to three workers; a reviewer loops until the report holds up.",
+    "tags": [
+      "multi-agent",
+      "loop"
+    ],
+    "level": "advanced",
+    "file": "research-team.json"
+  },
+  {
+    "id": "content-studio",
+    "title": "Content studio",
+    "blurb": "Writer and editor loop, then human sign-off before publishing.",
+    "tags": [
+      "loop",
+      "approval"
+    ],
+    "level": "intermediate",
+    "file": "content-studio.json"
+  },
+  {
+    "id": "data-analyst",
+    "title": "SQL analyst",
+    "blurb": "Plain-English questions over your database, read-only, explained simply.",
+    "tags": [
+      "tools",
+      "guardrail"
+    ],
+    "level": "intermediate",
+    "file": "data-analyst.json"
+  },
+  {
+    "id": "mcp-assistant",
+    "title": "MCP assistant",
+    "blurb": "MCP filesystem tools, web search and long-term memory.",
+    "tags": [
+      "mcp",
+      "memory"
+    ],
+    "level": "intermediate",
+    "file": "mcp-assistant.json"
+  }
+]

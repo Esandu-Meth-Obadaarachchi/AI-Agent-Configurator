@@ -1,0 +1,108 @@
+# Prompt pack: {{ project.name }}
+
+Paste this file into Claude Code (or any coding agent) when you want to extend the
+project. It explains how the code is laid out, where changes belong, and what is
+still open.
+
+## Ground rules for the coding agent
+
+1. This project was generated from `spec.json`. Treat generated files as read-only.
+   Put new logic in `backend/app/custom/` (tools.py, nodes.py, prompts.py).
+2. Keep the conversation contract: steps append `AIMessage(name=<node id>)` replies;
+   internal notes are `HumanMessage(name=<node id>)`. See `backend/app/messages.py`.
+3. Never put secrets in code. Add new variables to `.env.example` and `app/config.py`.
+4. Run `make test` and `make lint` before you finish. Tests run offline with
+   `LLM_PROVIDER=fake`.
+
+## The spec
+
+```json
+{{ spec_json }}```
+
+## The graph
+
+{% for n in graph_nodes %}
+- `{{ n.id }}` ({{ n.type }}) **{{ n.label }}**
+{% if n.supervisor %}
+  - reports back to `{{ n.supervisor }}`
+{% elif n.out %}
+  - then: {{ n.out | join(", ") }}
+{% endif %}
+{% for b in n.branches %}
+  - {{ b.label }} → {{ b.targets | join(", ") or "end" }}
+{% endfor %}
+{% if n.workers %}
+  - workers: {{ n.workers | join(", ") }}
+{% endif %}
+{% if n.tools or n.knowledge %}
+  - tools from: {{ (n.tools + n.knowledge) | join(", ") }}
+{% endif %}
+{% endfor %}
+
+## File map
+
+```
+{% for f in file_list %}
+{{ f }}
+{% endfor %}
+```
+
+Key files:
+
+- `backend/app/graph.py`: the LangGraph wiring (generated).
+- `backend/app/nodes/`: one factory per kind of step (generated).
+- `backend/app/tools/__init__.py`: which tools each canvas block provides (generated).
+- `backend/app/streaming.py`: how runs become Server-Sent Events for the UI.
+- `backend/app/custom/`: your code. Never overwritten.
+
+## Extension points
+
+| Task | Where | Contract |
+| --- | --- | --- |
+| New tool | `backend/app/custom/tools.py` | A function decorated with `@tool`, typed parameters, returns `str`. Add it to a tool set in `app/tools/__init__.py`, or ask for a Custom tool block in the spec. |
+| New step | `backend/app/custom/nodes.py` | `def <node_id>(state: dict[str, Any]) -> dict[str, Any]`, returning only the keys to change. |
+| Prompt change | `backend/app/custom/prompts.py` | `OVERRIDES[node_id] = "new instructions"` |
+
+## Open items
+
+{% if gaps %}
+These blocks need code that no template could produce. Implement each one, keeping
+the function name and signature, then run `make test`.
+
+{% for gap in gaps %}
+{% if gap.kind == "custom_tool" %}
+{% set r = g.resources[gap.node_id] %}
+### Custom tool `{{ r.data.tool_name }}` (block `{{ r.id }}`)
+
+- File: `backend/app/custom/tools.py` (replace the TODO stub)
+- What it should do: {{ r.data.description }}
+- Signature: `@tool def {{ r.data.tool_name }}({% for i in r.data.inputs %}{{ i.name }}: {{ i.type }}{% if not loop.last %}, {% endif %}{% endfor %}) -> str`
+{% for i in r.data.inputs %}
+  - `{{ i.name }}`: {{ i.description or "no description" }}
+{% endfor %}
+{% if r.data.env %}
+- Secrets available as environment variables: {{ r.data.env | join(", ") }}
+{% endif %}
+- Return a short, model-readable string. Return an error message instead of raising.
+{% else %}
+{% set n = g.nodes[gap.node_id] %}
+### Custom step `{{ n.id }}` ({{ n.label }})
+
+- File: `backend/app/custom/nodes.py` (replace the TODO stub)
+- What it should do: {{ n.data.description }}
+- Signature: `def {{ n.id }}(state: dict[str, Any]) -> dict[str, Any]`
+{% endif %}
+
+{% endfor %}
+{% else %}
+None. Every block was produced by a template or already has code.
+{% endif %}
+{% set notes = graph_nodes | selectattr("data.notes") | list %}
+{% if notes %}
+
+## Notes from the canvas
+
+{% for n in notes %}
+- **{{ n.label }}**: {{ n.data.notes }}
+{% endfor %}
+{% endif %}

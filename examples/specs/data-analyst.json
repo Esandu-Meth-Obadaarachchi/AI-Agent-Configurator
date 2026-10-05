@@ -1,0 +1,193 @@
+{
+  "spec_version": "0.2",
+  "project": {
+    "name": "data-analyst",
+    "description": "Ask questions about your database in plain English. Read-only by default."
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-opus-5-5",
+    "temperature": 0.2,
+    "effort": null,
+    "max_tokens": 4096
+  },
+  "backend": {
+    "language": "python"
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "position": {
+          "x": 0.0,
+          "y": 160.0
+        },
+        "type": "input",
+        "data": {
+          "label": "Chat input",
+          "notes": "",
+          "greeting": "What would you like to know about the data?"
+        }
+      },
+      {
+        "id": "guard",
+        "position": {
+          "x": 300.0,
+          "y": 160.0
+        },
+        "type": "guardrail",
+        "data": {
+          "label": "Screen message",
+          "notes": "",
+          "redact_pii": true,
+          "block_prompt_injection": true,
+          "max_input_chars": 8000,
+          "blocked_terms": [
+            "drop table",
+            "delete from"
+          ],
+          "blocked_message": "Sorry, I can't help with that request."
+        }
+      },
+      {
+        "id": "analyst",
+        "position": {
+          "x": 600.0,
+          "y": 160.0
+        },
+        "type": "agent",
+        "data": {
+          "label": "SQL analyst",
+          "notes": "",
+          "role": "Answers questions by querying the database.",
+          "system_prompt": "Explore the schema first, then write one careful SQL query. Show the query you ran. Never guess column names.",
+          "model": null,
+          "temperature": null,
+          "effort": null,
+          "max_steps": 8
+        }
+      },
+      {
+        "id": "explain",
+        "position": {
+          "x": 900.0,
+          "y": 160.0
+        },
+        "type": "prompt",
+        "data": {
+          "label": "Explain simply",
+          "notes": "",
+          "instructions": "Rewrite the analyst's findings for a non-technical reader: the answer first, then two lines of context.",
+          "model": null,
+          "temperature": null
+        }
+      },
+      {
+        "id": "reply",
+        "position": {
+          "x": 1200.0,
+          "y": 160.0
+        },
+        "type": "output",
+        "data": {
+          "label": "Reply",
+          "notes": ""
+        }
+      },
+      {
+        "id": "db",
+        "position": {
+          "x": 480.0,
+          "y": 440.0
+        },
+        "type": "sql_database",
+        "data": {
+          "label": "Warehouse",
+          "notes": "",
+          "dialect": "postgres",
+          "url_env": "SQL_TOOL_DATABASE_URL",
+          "read_only": true,
+          "max_rows": 50
+        }
+      },
+      {
+        "id": "calc",
+        "position": {
+          "x": 720.0,
+          "y": 440.0
+        },
+        "type": "calculator",
+        "data": {
+          "label": "Calculator",
+          "notes": ""
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-start-out-guard",
+        "source": "start",
+        "target": "guard",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-guard-pass-analyst",
+        "source": "guard",
+        "target": "analyst",
+        "sourceHandle": "pass",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-guard-blocked-reply",
+        "source": "guard",
+        "target": "reply",
+        "sourceHandle": "blocked",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-analyst-out-explain",
+        "source": "analyst",
+        "target": "explain",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-explain-out-reply",
+        "source": "explain",
+        "target": "reply",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "a-db-analyst",
+        "source": "db",
+        "target": "analyst",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      },
+      {
+        "id": "a-calc-analyst",
+        "source": "calc",
+        "target": "analyst",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      }
+    ]
+  },
+  "ui": {
+    "framework": "nextjs",
+    "streaming": true,
+    "feedback": true,
+    "show_steps": true,
+    "title": ""
+  },
+  "deploy": {
+    "target": "docker_compose",
+    "backend_port": 8000,
+    "frontend_port": 3000
+  },
+  "observability": {
+    "langsmith": false
+  }
+}

@@ -1,0 +1,354 @@
+{
+  "spec_version": "0.2",
+  "project": {
+    "name": "support-bot",
+    "description": "Triage support requests to billing or technical agents. Refunds need a human sign-off."
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-opus-5-5",
+    "temperature": 0.2,
+    "effort": null,
+    "max_tokens": 4096
+  },
+  "backend": {
+    "language": "python"
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "position": {
+          "x": 0.0,
+          "y": 160.0
+        },
+        "type": "input",
+        "data": {
+          "label": "Chat input",
+          "notes": "",
+          "greeting": "Hi! How can we help today?"
+        }
+      },
+      {
+        "id": "guard",
+        "position": {
+          "x": 300.0,
+          "y": 160.0
+        },
+        "type": "guardrail",
+        "data": {
+          "label": "Screen message",
+          "notes": "",
+          "redact_pii": true,
+          "block_prompt_injection": true,
+          "max_input_chars": 8000,
+          "blocked_terms": [],
+          "blocked_message": "Sorry, I can't help with that request."
+        }
+      },
+      {
+        "id": "triage",
+        "position": {
+          "x": 600.0,
+          "y": 160.0
+        },
+        "type": "router",
+        "data": {
+          "label": "Triage",
+          "notes": "",
+          "mode": "llm",
+          "instructions": "Pick the route that best matches the latest user message.",
+          "routes": [
+            {
+              "id": "billing",
+              "label": "Billing",
+              "description": "Payments, invoices, refunds, plans",
+              "keywords": [
+                "refund",
+                "invoice",
+                "charge",
+                "billing",
+                "plan"
+              ]
+            },
+            {
+              "id": "technical",
+              "label": "Technical",
+              "description": "Bugs, errors, how-to questions about the product",
+              "keywords": [
+                "error",
+                "bug",
+                "crash",
+                "how do i"
+              ]
+            },
+            {
+              "id": "other",
+              "label": "Other",
+              "description": "Greetings and anything else",
+              "keywords": []
+            }
+          ],
+          "model": null
+        }
+      },
+      {
+        "id": "billing",
+        "position": {
+          "x": 900.0,
+          "y": -10.0
+        },
+        "type": "agent",
+        "data": {
+          "label": "Billing agent",
+          "notes": "",
+          "role": "Handles payments, invoices and refunds.",
+          "system_prompt": "You handle billing questions. Look up the order before discussing it. Offer refunds only when the order qualifies, and explain why.",
+          "model": null,
+          "temperature": null,
+          "effort": null,
+          "max_steps": 8
+        }
+      },
+      {
+        "id": "tech",
+        "position": {
+          "x": 900.0,
+          "y": 200.0
+        },
+        "type": "agent",
+        "data": {
+          "label": "Technical agent",
+          "notes": "",
+          "role": "Solves product problems using the help centre.",
+          "system_prompt": "You solve technical problems. Search the help centre first, then give numbered steps. Ask for the error message if you need it.",
+          "model": null,
+          "temperature": null,
+          "effort": null,
+          "max_steps": 8
+        }
+      },
+      {
+        "id": "smalltalk",
+        "position": {
+          "x": 900.0,
+          "y": 410.0
+        },
+        "type": "prompt",
+        "data": {
+          "label": "Friendly reply",
+          "notes": "",
+          "instructions": "Reply briefly and warmly, then ask how you can help with billing or a technical issue.",
+          "model": null,
+          "temperature": null
+        }
+      },
+      {
+        "id": "approve",
+        "position": {
+          "x": 1200.0,
+          "y": -10.0
+        },
+        "type": "approval",
+        "data": {
+          "label": "Approve refund",
+          "notes": "",
+          "prompt": "A billing reply is ready. Approve it before it reaches the customer?",
+          "allow_edit": true
+        }
+      },
+      {
+        "id": "reply",
+        "position": {
+          "x": 1500.0,
+          "y": 160.0
+        },
+        "type": "output",
+        "data": {
+          "label": "Reply",
+          "notes": ""
+        }
+      },
+      {
+        "id": "orders",
+        "position": {
+          "x": 740.0,
+          "y": 560.0
+        },
+        "type": "http_api",
+        "data": {
+          "label": "Orders API",
+          "notes": "",
+          "tool_name": "get_order",
+          "description": "Look up an order by its id: status, amount and refund eligibility.",
+          "method": "GET",
+          "base_url": "https://api.example.com",
+          "path": "/orders/{order_id}",
+          "params": [
+            {
+              "name": "order_id",
+              "description": "The order id, e.g. ORD-1234",
+              "location": "path"
+            }
+          ],
+          "auth_header": "Authorization",
+          "auth_env": "API_TOKEN"
+        }
+      },
+      {
+        "id": "helpdocs",
+        "position": {
+          "x": 960.0,
+          "y": 560.0
+        },
+        "type": "knowledge",
+        "data": {
+          "label": "Help centre",
+          "notes": "",
+          "description": "Product help-centre articles",
+          "sources": [
+            "pdf",
+            "markdown"
+          ],
+          "chunker": "recursive",
+          "chunk_size": 800,
+          "overlap": 100,
+          "embedding": "local_bge_small",
+          "vector_store": "pgvector",
+          "retrieval": "hybrid",
+          "top_k": 6,
+          "reranker": "none"
+        }
+      },
+      {
+        "id": "memory",
+        "position": {
+          "x": 1400.0,
+          "y": 560.0
+        },
+        "type": "memory",
+        "data": {
+          "label": "Memory",
+          "notes": "",
+          "short_term": "postgres",
+          "long_term": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-start-out-guard",
+        "source": "start",
+        "target": "guard",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-guard-pass-triage",
+        "source": "guard",
+        "target": "triage",
+        "sourceHandle": "pass",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-guard-blocked-reply",
+        "source": "guard",
+        "target": "reply",
+        "sourceHandle": "blocked",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-triage-route:billing-billing",
+        "source": "triage",
+        "target": "billing",
+        "sourceHandle": "route:billing",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-triage-route:technical-tech",
+        "source": "triage",
+        "target": "tech",
+        "sourceHandle": "route:technical",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-triage-route:other-smalltalk",
+        "source": "triage",
+        "target": "smalltalk",
+        "sourceHandle": "route:other",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-billing-out-approve",
+        "source": "billing",
+        "target": "approve",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-approve-approved-reply",
+        "source": "approve",
+        "target": "reply",
+        "sourceHandle": "approved",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-approve-rejected-billing",
+        "source": "approve",
+        "target": "billing",
+        "sourceHandle": "rejected",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-tech-out-reply",
+        "source": "tech",
+        "target": "reply",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-smalltalk-out-reply",
+        "source": "smalltalk",
+        "target": "reply",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "a-orders-billing",
+        "source": "orders",
+        "target": "billing",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      },
+      {
+        "id": "a-helpdocs-tech",
+        "source": "helpdocs",
+        "target": "tech",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      },
+      {
+        "id": "a-memory-billing",
+        "source": "memory",
+        "target": "billing",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      }
+    ]
+  },
+  "ui": {
+    "framework": "nextjs",
+    "streaming": true,
+    "feedback": true,
+    "show_steps": true,
+    "title": ""
+  },
+  "deploy": {
+    "target": "docker_compose",
+    "backend_port": 8000,
+    "frontend_port": 3000
+  },
+  "observability": {
+    "langsmith": false
+  }
+}

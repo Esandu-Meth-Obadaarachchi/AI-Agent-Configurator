@@ -1,0 +1,7 @@
+id: tool.web_search
+title: Web search (Tavily)
+tree: true
+python_deps: [httpx]
+env:
+  - name: TAVILY_API_KEY
+    comment: "Web search. Free key at https://tavily.com"

@@ -1,0 +1,8 @@
+id: vector_store.chroma
+title: Chroma
+tree: true
+python_deps: [chromadb]
+env:
+  - name: CHROMA_PATH
+    value: data/chroma
+    comment: Folder where Chroma keeps its index.

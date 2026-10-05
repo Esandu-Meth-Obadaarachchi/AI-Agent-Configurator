@@ -10,10 +10,10 @@ from __future__ import annotations
 from typing import Any
 
 ANTHROPIC_MODELS = [
-    {"value": "claude-opus-5-5", "label": "Claude Opus 5.5", "hint": "Most capable. Best for supervisors and hard reasoning."},
-    {"value": "claude-sonnet-5-5", "label": "Claude Sonnet 5.5", "hint": "Balanced speed and quality. A good default."},
-    {"value": "claude-haiku-4-5-20251001", "label": "Claude Haiku 4.5", "hint": "Fastest and cheapest. Good for routers and critics."},
-    {"value": "claude-fable-5-1", "label": "Claude Fable 5.1", "hint": "Creative writing focus."},
+    {"value": "claude-opus-5-5", "label": "Claude Opus 5.5", "hint": "The default. Strongest all-rounder for agents and supervisors."},
+    {"value": "claude-sonnet-5-5", "label": "Claude Sonnet 5.5", "hint": "Faster and cheaper. Good for high-volume workers."},
+    {"value": "claude-haiku-4-5", "label": "Claude Haiku 4.5", "hint": "Fastest and cheapest. Good for routers and critics."},
+    {"value": "claude-fable-5-1", "label": "Claude Fable 5.1", "hint": "Anthropic's most capable model, priced above Opus. For the hardest long tasks."},
 ]
 OPENAI_MODELS = [
     {"value": "gpt-5", "label": "GPT-5", "hint": "OpenAI flagship."},
@@ -21,7 +21,7 @@ OPENAI_MODELS = [
     {"value": "gpt-4.1", "label": "GPT-4.1", "hint": "Previous generation."},
 ]
 MODELS = {"anthropic": ANTHROPIC_MODELS, "openai": OPENAI_MODELS}
-DEFAULT_MODEL = {"anthropic": "claude-sonnet-5-5", "openai": "gpt-5-mini"}
+DEFAULT_MODEL = {"anthropic": "claude-opus-5-5", "openai": "gpt-5-mini"}
 
 CATEGORIES = [
     {"id": "flow", "title": "Start and finish", "blurb": "Where a conversation enters and leaves the loop."},
@@ -41,7 +41,34 @@ def _f(key: str, label: str, kind: str, **extra: Any) -> dict[str, Any]:
 LABEL = _f("label", "Name on canvas", "text", placeholder="e.g. Researcher")
 NOTES = _f("notes", "Notes", "textarea", rows=2, advanced=True, help="Private notes. Copied into PROMPT_PACK.md.")
 MODEL = _f("model", "Model", "model", help="Leave on default to use the project model.")
-TEMPERATURE = _f("temperature", "Temperature", "number", min=0, max=1, step=0.05, advanced=True, nullable=True)
+TEMPERATURE = _f(
+    "temperature",
+    "Temperature",
+    "number",
+    min=0,
+    max=1,
+    step=0.05,
+    advanced=True,
+    nullable=True,
+    help="Only sent to models that accept it. Claude Opus 5.5, Sonnet 5.5 and Fable ignore it; use effort instead.",
+)
+EFFORT_OPTIONS = [
+    {"value": "", "label": "Default"},
+    {"value": "low", "label": "Low"},
+    {"value": "medium", "label": "Medium"},
+    {"value": "high", "label": "High"},
+    {"value": "xhigh", "label": "X-high"},
+    {"value": "max", "label": "Max"},
+]
+EFFORT = _f(
+    "effort",
+    "Reasoning effort",
+    "segmented",
+    options=EFFORT_OPTIONS,
+    advanced=True,
+    nullable=True,
+    help="Claude only. Higher effort thinks longer and costs more. Low suits routing and chat.",
+)
 
 FLOW_IN = [{"id": "in", "kind": "flow"}]
 FLOW_OUT = [{"id": "out", "kind": "flow", "label": ""}]
@@ -92,6 +119,7 @@ NODE_TYPES: list[dict[str, Any]] = [
             _f("role", "Job in one line", "text", help="Shown to supervisors so they know when to delegate here."),
             _f("system_prompt", "Instructions", "prompt", rows=6, ai="system_prompt"),
             MODEL,
+            EFFORT,
             TEMPERATURE,
             _f("max_steps", "Max tool steps", "number", min=1, max=50, step=1, advanced=True),
             NOTES,
@@ -497,7 +525,8 @@ PROJECT_FIELDS: list[dict[str, Any]] = [
     _f("project.description", "What does it do?", "textarea", rows=2),
     _f("llm.provider", "Model provider", "segmented", options=[{"value": "anthropic", "label": "Anthropic"}, {"value": "openai", "label": "OpenAI"}]),
     _f("llm.model", "Default model", "model"),
-    _f("llm.temperature", "Temperature", "number", min=0, max=1, step=0.05),
+    _f("llm.effort", "Reasoning effort", "segmented", options=EFFORT_OPTIONS, nullable=True, help="Claude only. Default lets the model decide."),
+    _f("llm.temperature", "Temperature", "number", min=0, max=1, step=0.05, advanced=True, help="Only sent to models that accept sampling settings."),
     _f(
         "backend.language",
         "Backend",

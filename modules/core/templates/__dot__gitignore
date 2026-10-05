@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+backend/data/*.sqlite
+backend/data/chroma/
+backend/data/feedback.jsonl

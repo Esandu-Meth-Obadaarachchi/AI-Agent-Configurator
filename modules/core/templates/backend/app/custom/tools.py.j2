@@ -1,0 +1,36 @@
+"""Custom tools. This file is yours: regeneration never overwrites it.
+
+Each tool is a function decorated with @tool. The docstring is what the model reads
+to decide when to call it, so describe what it does and when to use it.
+{% if custom_tools %}
+Tools written by Claude were checked against a contract test before they were saved
+into spec.json; tools marked TODO still need a body.
+{% else %}
+
+Add a Custom tool block on the canvas to have one generated here, or write your own
+and attach it in app/tools/__init__.py.
+{% endif %}
+"""
+
+from __future__ import annotations
+
+{% if custom_tools %}
+{% for line in custom_tool_imports %}
+{{ line }}
+{% endfor %}
+{% else %}
+__all__: list[str] = []
+{% endif %}
+{% for t in custom_tool_bodies %}
+
+
+{% if t.stub %}
+@tool
+def {{ t.res.data.tool_name }}({% for i in t.res.data.inputs %}{{ i.name }}: {{ i.type }}{% if not loop.last %}, {% endif %}{% endfor %}) -> str:
+    {{ t.res.data.description | trim | pystr }}
+    # TODO(agent-configurator): implement this tool. See PROMPT_PACK.md for the contract.
+    return "{{ t.res.data.tool_name }} is not implemented yet."
+{% else %}
+{{ t.body }}
+{% endif %}
+{% endfor %}

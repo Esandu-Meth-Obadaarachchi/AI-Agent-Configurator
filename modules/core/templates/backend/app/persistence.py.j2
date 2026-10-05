@@ -1,0 +1,68 @@
+"""Where conversation state lives between messages (the LangGraph checkpointer).
+
+Approvals pause a run and resume it later, so the checkpointer is what makes them
+work. CHECKPOINTER=memory keeps everything in RAM (lost on restart).
+{% if long_term %}
+The store holds long-term memories that outlive a single conversation.
+{% endif %}
+"""
+
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any
+
+from langgraph.checkpoint.memory import InMemorySaver
+{% if long_term %}
+from langgraph.store.memory import InMemoryStore
+{% endif %}
+
+from app.config import get_settings
+
+
+@asynccontextmanager
+async def open_persistence() -> AsyncIterator[tuple[Any, Any]]:
+    """Yield (checkpointer, store) for the app's lifetime."""
+    settings = get_settings()
+    kind = settings.checkpointer
+{% if "memory.postgres" in modules %}
+    if kind == "postgres":
+        from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+
+        async with AsyncPostgresSaver.from_conn_string(settings.database_url) as saver:
+            await saver.setup()
+{% if long_term %}
+            from langgraph.store.postgres.aio import AsyncPostgresStore
+
+            async with AsyncPostgresStore.from_conn_string(settings.database_url) as store:
+                await store.setup()
+                yield saver, store
+{% else %}
+            yield saver, None
+{% endif %}
+        return
+{% endif %}
+{% if "memory.sqlite" in modules %}
+    if kind == "sqlite":
+        from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+
+        Path(settings.sqlite_path).parent.mkdir(parents=True, exist_ok=True)
+        async with AsyncSqliteSaver.from_conn_string(settings.sqlite_path) as saver:
+{% if long_term %}
+            from langgraph.store.sqlite.aio import AsyncSqliteStore
+
+            async with AsyncSqliteStore.from_conn_string(settings.sqlite_path.replace(".sqlite", "-store.sqlite")) as store:
+                await store.setup()
+                yield saver, store
+{% else %}
+            yield saver, None
+{% endif %}
+        return
+{% endif %}
+    if kind not in {"memory", "postgres", "sqlite"}:
+        raise ValueError(f"Unknown CHECKPOINTER '{kind}'. Use memory, sqlite or postgres.")
+    Path(settings.data_dir).mkdir(parents=True, exist_ok=True)
+    yield InMemorySaver(), {% if long_term %}InMemoryStore(){% else %}None{% endif %}
+

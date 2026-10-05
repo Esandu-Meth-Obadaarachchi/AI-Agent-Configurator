@@ -1,0 +1,6 @@
+id: provider.openai
+title: OpenAI
+python_deps: [langchain-openai]
+env:
+  - name: OPENAI_API_KEY
+    comment: "Your OpenAI API key"

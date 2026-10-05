@@ -1,0 +1,18 @@
+id: deploy.docker_compose
+title: Docker Compose
+compose:
+  services:
+    backend:
+      build: ./backend
+      env_file: [.env]
+      environment:
+        DATABASE_URL: postgresql://app:app@postgres:5432/app
+      ports: ["{{ deploy.backend_port }}:8000"]
+      volumes: ["backend-data:/app/data"]
+      healthcheck:
+        test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+        interval: 10s
+        timeout: 5s
+        retries: 6
+  volumes:
+    backend-data: {}

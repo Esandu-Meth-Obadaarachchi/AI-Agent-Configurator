@@ -1,0 +1,20 @@
+# Getting started with {{ title }}
+
+This file is a sample document. Replace it with your own files, then load them:
+
+```
+cd backend
+{% for k in knowledge %}
+python -m app.rag.ingest {{ k.id }} data/docs
+{% endfor %}
+```
+
+You can also upload files from the chat UI with the paperclip button.
+
+Supported file types: PDF, Markdown, plain text and HTML.
+
+## Sample facts for testing
+
+- Refunds are available within 30 days of purchase.
+- To reset a password, open Settings and choose Security.
+- Support hours are 9am to 5pm, Monday to Friday.

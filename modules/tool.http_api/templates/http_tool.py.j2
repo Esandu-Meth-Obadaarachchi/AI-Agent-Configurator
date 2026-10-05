@@ -1,0 +1,49 @@
+{% set d = item.data %}
+{% set path_params = d.params | selectattr("location", "equalto", "path") | list %}
+{% set query_params = d.params | selectattr("location", "equalto", "query") | list %}
+{% set body_params = d.params | selectattr("location", "equalto", "body") | list %}
+"""{{ item.label }}: {{ d.method }} {{ d.base_url }}{{ d.path }}"""
+
+from __future__ import annotations
+
+import os
+
+import httpx
+from langchain_core.tools import tool
+from pydantic import BaseModel, Field
+
+BASE_URL = {{ d.base_url.rstrip("/") | pystr }}
+PATH = {{ d.path | pystr }}
+
+
+class {{ d.tool_name | title | replace("_", "") }}Args(BaseModel):
+{% for p in d.params %}
+    {{ p.name }}: str = Field(description={{ (p.description or p.name) | pystr }})
+{% endfor %}
+{% if not d.params %}
+    pass
+{% endif %}
+
+
+@tool({{ d.tool_name | pystr }}, args_schema={{ d.tool_name | title | replace("_", "") }}Args)
+async def {{ d.tool_name }}({% for p in d.params %}{{ p.name }}: str{% if not loop.last %}, {% endif %}{% endfor %}) -> str:
+    {{ d.description | pystr }}
+    url = BASE_URL + PATH{% if path_params %}.format({% for p in path_params %}{{ p.name }}={{ p.name }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}
+
+    headers = {"Accept": "application/json"}
+{% if d.auth_env %}
+    token = os.environ.get({{ d.auth_env | pystr }})
+    if token:
+        headers[{{ d.auth_header | pystr }}] = token if " " in token else f"Bearer {token}"
+{% endif %}
+    async with httpx.AsyncClient(timeout=30) as client:
+        res = await client.request(
+            {{ d.method | pystr }},
+            url,
+            headers=headers,
+            params={ {%- for p in query_params %}{{ p.name | pystr }}: {{ p.name }}{% if not loop.last %}, {% endif %}{% endfor %}},
+{% if body_params %}
+            json={ {%- for p in body_params %}{{ p.name | pystr }}: {{ p.name }}{% if not loop.last %}, {% endif %}{% endfor %}},
+{% endif %}
+        )
+    return f"HTTP {res.status_code}\n{res.text[:4000]}"

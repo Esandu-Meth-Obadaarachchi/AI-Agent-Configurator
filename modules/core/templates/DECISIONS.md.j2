@@ -1,0 +1,21 @@
+# Decisions
+
+Every technology in this project, why it was chosen, and what it costs you.
+Generated from each module's explanation, so it always matches the code.
+
+{% for d in decisions %}
+## {{ d.title }}
+
+{% if d.what %}
+**What.** {{ d.what }}
+
+{% endif %}
+{% if d.why %}
+**Why.** {{ d.why }}
+
+{% endif %}
+{% if d["trade-off"] %}
+**Trade-off.** {{ d["trade-off"] }}
+
+{% endif %}
+{% endfor %}

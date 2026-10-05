@@ -1,0 +1,60 @@
+# {{ project.name }}: common tasks. Run `make help` to list them.
+.PHONY: help setup dev api{% if has_ui %} ui{% endif %} test lint up down{% if needs_postgres %} db{% endif %}{% if has_rag %} ingest{% endif %}
+
+
+help:
+	@grep -E '^[a-z]+:.*?## ' Makefile | awk -F':.*?## ' '{printf "  %-8s %s\n", $$1, $$2}'
+
+setup: ## Install backend{% if has_ui %} and frontend{% endif %} dependencies and create .env
+	test -f .env || cp .env.example .env
+	cd backend && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+{% if has_ui %}
+	cd frontend && npm install
+{% endif %}
+{% if needs_postgres %}
+
+db: ## Start only Postgres (for local development)
+	docker compose up -d postgres
+{% endif %}
+
+api: ## Run the API with auto-reload on http://localhost:8000
+	cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000
+{% if has_ui %}
+
+ui: ## Run the chat UI on http://localhost:{{ deploy.frontend_port }}
+	cd frontend && npm run dev -- --port {{ deploy.frontend_port }}
+{% endif %}
+
+dev: ## Run API{% if has_ui %} and UI{% endif %} together (Ctrl+C stops both)
+{% if needs_postgres %}
+	docker compose up -d postgres
+{% endif %}
+{% if has_ui %}
+	$(MAKE) -j2 api ui
+{% else %}
+	$(MAKE) api
+{% endif %}
+
+test: ## Run the backend tests (offline demo model, no API key needed)
+	cd backend && .venv/bin/pytest
+
+lint: ## Lint and type-check
+	cd backend && .venv/bin/ruff check . && .venv/bin/mypy app
+{% if has_ui %}
+	cd frontend && npm run lint && npm run typecheck
+{% endif %}
+{% if has_rag %}
+
+ingest: ## Load backend/data/docs into the knowledge base
+{% for k in knowledge %}
+	cd backend && .venv/bin/python -m app.rag.ingest {{ k.id }} data/docs
+{% endfor %}
+{% endif %}
+{% if has_compose %}
+
+up: ## Build and start everything with Docker Compose
+	docker compose up --build
+
+down: ## Stop Docker Compose
+	docker compose down
+{% endif %}

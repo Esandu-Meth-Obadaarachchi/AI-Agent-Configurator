@@ -1,0 +1,6 @@
+id: reranker.cohere
+title: Cohere Rerank
+python_deps: [httpx]
+env:
+  - name: COHERE_API_KEY
+    comment: Used by the Cohere reranker.

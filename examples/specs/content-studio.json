@@ -1,0 +1,173 @@
+{
+  "spec_version": "0.2",
+  "project": {
+    "name": "content-studio",
+    "description": "Draft, self-review in a loop, then a human approves before publishing."
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-opus-5-5",
+    "temperature": 0.2,
+    "effort": null,
+    "max_tokens": 4096
+  },
+  "backend": {
+    "language": "python"
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "position": {
+          "x": 0.0,
+          "y": 160.0
+        },
+        "type": "input",
+        "data": {
+          "label": "Brief",
+          "notes": "",
+          "greeting": "Describe the piece you need."
+        }
+      },
+      {
+        "id": "writer",
+        "position": {
+          "x": 300.0,
+          "y": 160.0
+        },
+        "type": "agent",
+        "data": {
+          "label": "Writer",
+          "notes": "",
+          "role": "Writes on-brand drafts.",
+          "system_prompt": "Write the requested piece. Match the brand voice: plain, warm, specific. When you receive reviewer feedback, revise the whole draft.",
+          "model": null,
+          "temperature": null,
+          "effort": null,
+          "max_steps": 8
+        }
+      },
+      {
+        "id": "editor",
+        "position": {
+          "x": 600.0,
+          "y": 160.0
+        },
+        "type": "critic",
+        "data": {
+          "label": "Editor review",
+          "notes": "",
+          "criteria": "Clear structure, no filler, a concrete call to action, under the requested length, no factual claims without support.",
+          "max_iterations": 3,
+          "model": null
+        }
+      },
+      {
+        "id": "signoff",
+        "position": {
+          "x": 900.0,
+          "y": 160.0
+        },
+        "type": "approval",
+        "data": {
+          "label": "Publish sign-off",
+          "notes": "",
+          "prompt": "Approve this draft for publishing?",
+          "allow_edit": true
+        }
+      },
+      {
+        "id": "reply",
+        "position": {
+          "x": 1200.0,
+          "y": 160.0
+        },
+        "type": "output",
+        "data": {
+          "label": "Publish",
+          "notes": ""
+        }
+      },
+      {
+        "id": "search",
+        "position": {
+          "x": 200.0,
+          "y": 440.0
+        },
+        "type": "web_search",
+        "data": {
+          "label": "Web search",
+          "notes": "",
+          "provider": "tavily",
+          "max_results": 5
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-start-out-writer",
+        "source": "start",
+        "target": "writer",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-writer-out-editor",
+        "source": "writer",
+        "target": "editor",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-editor-revise-writer",
+        "source": "editor",
+        "target": "writer",
+        "sourceHandle": "revise",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-editor-pass-signoff",
+        "source": "editor",
+        "target": "signoff",
+        "sourceHandle": "pass",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-signoff-approved-reply",
+        "source": "signoff",
+        "target": "reply",
+        "sourceHandle": "approved",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-signoff-rejected-writer",
+        "source": "signoff",
+        "target": "writer",
+        "sourceHandle": "rejected",
+        "targetHandle": "in"
+      },
+      {
+        "id": "a-search-writer",
+        "source": "search",
+        "target": "writer",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      }
+    ]
+  },
+  "ui": {
+    "framework": "nextjs",
+    "streaming": true,
+    "feedback": true,
+    "show_steps": true,
+    "title": ""
+  },
+  "deploy": {
+    "target": "docker_compose",
+    "backend_port": 8000,
+    "frontend_port": 3000
+  },
+  "observability": {
+    "langsmith": false
+  }
+}

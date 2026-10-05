@@ -1,0 +1,3 @@
+id: embedding.local
+title: Local embeddings (fastembed)
+python_deps: [fastembed]

@@ -1,0 +1,32 @@
+"""Facts about this app's graph, shared by the API and the UI."""
+
+from __future__ import annotations
+
+APP_TITLE = {{ title | pystr }}
+GREETING = {{ greeting | pystr }}
+
+# Display names for every block on the canvas, keyed by node id.
+NODE_LABELS: dict[str, str] = {
+{% for id, label in labels.items() %}
+    {{ id | pystr }}: {{ label | pystr }},
+{% endfor %}
+}
+
+# What kind of block each step is, so the UI can choose an icon.
+NODE_KINDS: dict[str, str] = {
+{% for n in nodes %}
+    {{ n.id | pystr }}: {{ n.type | pystr }},
+{% endfor %}
+}
+
+# Steps whose replies the user sees as chat messages.
+SPEAKING_NODES: frozenset[str] = frozenset({{ speaking_nodes | py }})
+
+FEATURES = {
+    "approval": {{ has_approval | py }},
+    "knowledge": [{% for k in knowledge %}{"id": {{ k.id | pystr }}, "label": {{ k.label | pystr }}}{% if not loop.last %}, {% endif %}{% endfor %}],
+    "long_term_memory": {{ long_term | py }},
+    "feedback": {{ ui.feedback | py }},
+    "show_steps": {{ ui.show_steps | py }},
+    "streaming": {{ ui.streaming | py }},
+}

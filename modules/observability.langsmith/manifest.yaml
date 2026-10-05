@@ -1,0 +1,10 @@
+id: observability.langsmith
+title: LangSmith tracing
+python_deps: [langsmith]
+env:
+  - name: LANGSMITH_TRACING
+    value: "true"
+  - name: LANGSMITH_API_KEY
+    comment: Traces every model call, tool call and step to LangSmith.
+  - name: LANGSMITH_PROJECT
+    value: "{{ project.name }}"
