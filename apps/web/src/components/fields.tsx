@@ -381,7 +381,7 @@ function ListField({
                       aria-label={c.label}
                       value={String(row[c.key] ?? "")}
                       onChange={(e) => update(i, c.key, e.target.value)}
-                      className={`${inputClass} h-8 w-auto cursor-pointer`}
+                      className={`${inputClass.replace("w-full", "")} h-8 w-[92px] shrink-0 cursor-pointer`}
                     >
                       {c.options.map((o) => (
                         <option key={o}>{o}</option>
