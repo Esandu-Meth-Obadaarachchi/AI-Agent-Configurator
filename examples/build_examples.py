@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from configurator_engine.layout import auto_layout
 from configurator_spec import dump_spec, parse_spec
 
 OUT = Path(__file__).parent / "specs"
@@ -260,7 +261,9 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     index = []
     for slug, fn, title, blurb, tags, level in BLUEPRINTS:
-        spec = parse_spec(fn())
+        raw = fn()
+        auto_layout(raw["graph"]["nodes"], raw["graph"]["edges"])
+        spec = parse_spec(raw)
         (OUT / f"{slug}.json").write_text(dump_spec(spec), encoding="utf-8")
         index.append({"id": slug, "title": title, "blurb": blurb, "tags": tags, "level": level, "file": f"{slug}.json"})
     (OUT / "index.json").write_text(json.dumps(index, indent=2) + "\n", encoding="utf-8")

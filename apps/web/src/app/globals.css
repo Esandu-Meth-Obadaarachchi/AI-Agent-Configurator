@@ -1,0 +1,330 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/base.css";
+
+/*
+  Design tokens. One accent (signal orange) for action, selection and the live trace.
+  Category hues are functional markers only: ports, cables and small icon tiles.
+*/
+:root {
+  --canvas: #eef1f4;
+  --grid: #c4cbd5;
+  --surface: #ffffff;
+  --surface-2: #f6f8fa;
+  --glass: rgb(255 255 255 / 0.78);
+  --ink: #0e1726;
+  --ink-2: #2b3545;
+  --muted: #5a6577;
+  --faint: #8a94a5;
+  --line: #dde2e9;
+  --line-strong: #c3cad5;
+  --accent: #f25a1f;
+  --accent-ink: #b23a0b;
+  --accent-soft: #fff0e8;
+  --error: #d43d3d;
+  --error-soft: #fdeeee;
+  --warn: #b7791f;
+  --warn-soft: #fdf5e6;
+  --ok: #2f8a4a;
+  --cat-flow: #687385;
+  --cat-agents: #3b5bdb;
+  --cat-logic: #8a4fd8;
+  --cat-knowledge: #0e9384;
+  --cat-tools: #c0397e;
+  --cat-memory: #4e9a2e;
+  --cat-safety: #d64545;
+  --shadow-sm: 0 1px 2px rgb(14 23 38 / 0.06), 0 1px 1px rgb(14 23 38 / 0.04);
+  --shadow-md: 0 6px 24px -8px rgb(14 23 38 / 0.18), 0 2px 6px -2px rgb(14 23 38 / 0.08);
+  --shadow-lg: 0 24px 60px -20px rgb(14 23 38 / 0.35);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0d1218;
+    --grid: #263040;
+    --surface: #151b24;
+    --surface-2: #1b2330;
+    --glass: rgb(21 27 36 / 0.8);
+    --ink: #e7ebf1;
+    --ink-2: #c9d0db;
+    --muted: #8d98aa;
+    --faint: #667185;
+    --line: #253041;
+    --line-strong: #344155;
+    --accent: #ff6a2e;
+    --accent-ink: #ff9a6e;
+    --accent-soft: #3a1d10;
+    --error: #ff6b6b;
+    --error-soft: #3a1717;
+    --warn: #e0a440;
+    --warn-soft: #36290f;
+    --ok: #5bc27a;
+    --cat-flow: #8e99ab;
+    --cat-agents: #6f8cff;
+    --cat-logic: #b083ff;
+    --cat-knowledge: #2fc2b0;
+    --cat-tools: #f06aaf;
+    --cat-memory: #7fcc5a;
+    --cat-safety: #ff7676;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 8px 28px -10px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 24px 60px -20px rgb(0 0 0 / 0.75);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --canvas: #0d1218;
+  --grid: #263040;
+  --surface: #151b24;
+  --surface-2: #1b2330;
+  --glass: rgb(21 27 36 / 0.8);
+  --ink: #e7ebf1;
+  --ink-2: #c9d0db;
+  --muted: #8d98aa;
+  --faint: #667185;
+  --line: #253041;
+  --line-strong: #344155;
+  --accent: #ff6a2e;
+  --accent-ink: #ff9a6e;
+  --accent-soft: #3a1d10;
+  --error: #ff6b6b;
+  --error-soft: #3a1717;
+  --warn: #e0a440;
+  --warn-soft: #36290f;
+  --ok: #5bc27a;
+  --cat-flow: #8e99ab;
+  --cat-agents: #6f8cff;
+  --cat-logic: #b083ff;
+  --cat-knowledge: #2fc2b0;
+  --cat-tools: #f06aaf;
+  --cat-memory: #7fcc5a;
+  --cat-safety: #ff7676;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 8px 28px -10px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 24px 60px -20px rgb(0 0 0 / 0.75);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-bricolage), var(--font-geist), sans-serif;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-ok: var(--ok);
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+  overflow: hidden;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Floating chrome: translucent material over the canvas (Apple-style), solid when asked. */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* ---------------------------------------------------------------- React Flow */
+
+.react-flow {
+  --xy-edge-stroke: var(--line-strong);
+  --xy-edge-stroke-selected: var(--accent);
+  --xy-connectionline-stroke: var(--accent);
+  --xy-handle-background-color: var(--surface);
+  --xy-handle-border-color: var(--line-strong);
+  --xy-selection-background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  --xy-selection-border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  background: var(--canvas);
+}
+
+.react-flow__node {
+  cursor: grab;
+}
+.react-flow__node.dragging {
+  cursor: grabbing;
+}
+
+.react-flow__handle {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 999px;
+  transition: transform 140ms var(--ease-out), background-color 140ms ease;
+}
+.react-flow__handle.connectingfrom,
+.react-flow__handle.valid {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .react-flow__handle:hover {
+    transform: scale(1.3);
+  }
+}
+
+.react-flow__edge-path {
+  stroke-width: 1.75;
+}
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--accent);
+}
+.react-flow__connection-path {
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.react-flow__minimap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.react-flow__minimap-mask {
+  fill: color-mix(in srgb, var(--canvas) 70%, transparent);
+}
+
+/* ---------------------------------------------------------------- trace */
+
+@keyframes trace-glow {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent), var(--shadow-md);
+  }
+  100% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent), var(--shadow-md);
+  }
+}
+.tracing {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  animation: trace-glow 900ms var(--ease-out) infinite;
+}
+
+.trace-edge {
+  stroke: var(--accent) !important;
+  stroke-width: 2.5 !important;
+}
+
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+.enter-up {
+  animation: enter-up 220ms var(--ease-out);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.fade-in {
+  animation: fade-in 180ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tracing {
+    animation: none;
+  }
+  .enter-up,
+  .fade-in {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------- code */
+
+.hljs-keyword,
+.hljs-built_in,
+.hljs-selector-tag {
+  color: var(--cat-logic);
+}
+.hljs-string,
+.hljs-attr-value {
+  color: var(--cat-knowledge);
+}
+.hljs-comment,
+.hljs-quote {
+  color: var(--faint);
+  font-style: italic;
+}
+.hljs-number,
+.hljs-literal {
+  color: var(--accent-ink);
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-section {
+  color: var(--cat-agents);
+}
+.hljs-attr,
+.hljs-property,
+.hljs-variable {
+  color: var(--cat-tools);
+}
+.hljs-meta,
+.hljs-decorator {
+  color: var(--warn);
+}
+.hljs-type,
+.hljs-params {
+  color: var(--ink-2);
+}
+
+/* Keyboard focus on a block: ring the card, not the invisible wrapper. */
+.react-flow__node:focus-visible {
+  outline: none;
+}
+.react-flow__node:focus-visible > div {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent), var(--shadow-md);
+}

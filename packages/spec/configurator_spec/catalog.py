@@ -53,7 +53,7 @@ TEMPERATURE = _f(
     help="Only sent to models that accept it. Claude Opus 5.5, Sonnet 5.5 and Fable ignore it; use effort instead.",
 )
 EFFORT_OPTIONS = [
-    {"value": "", "label": "Default"},
+    {"value": "", "label": "Model default"},
     {"value": "low", "label": "Low"},
     {"value": "medium", "label": "Medium"},
     {"value": "high", "label": "High"},
@@ -63,7 +63,7 @@ EFFORT_OPTIONS = [
 EFFORT = _f(
     "effort",
     "Reasoning effort",
-    "segmented",
+    "select",
     options=EFFORT_OPTIONS,
     advanced=True,
     nullable=True,
@@ -525,7 +525,7 @@ PROJECT_FIELDS: list[dict[str, Any]] = [
     _f("project.description", "What does it do?", "textarea", rows=2),
     _f("llm.provider", "Model provider", "segmented", options=[{"value": "anthropic", "label": "Anthropic"}, {"value": "openai", "label": "OpenAI"}]),
     _f("llm.model", "Default model", "model"),
-    _f("llm.effort", "Reasoning effort", "segmented", options=EFFORT_OPTIONS, nullable=True, help="Claude only. Default lets the model decide."),
+    _f("llm.effort", "Reasoning effort", "select", options=EFFORT_OPTIONS, nullable=True, help="Claude only. Default lets the model decide."),
     _f("llm.temperature", "Temperature", "number", min=0, max=1, step=0.05, advanced=True, help="Only sent to models that accept sampling settings."),
     _f(
         "backend.language",

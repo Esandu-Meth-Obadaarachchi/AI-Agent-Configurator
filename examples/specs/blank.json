@@ -20,7 +20,7 @@
         "id": "start",
         "position": {
           "x": 0.0,
-          "y": 160.0
+          "y": 0.0
         },
         "type": "input",
         "data": {
@@ -32,8 +32,8 @@
       {
         "id": "assistant",
         "position": {
-          "x": 300.0,
-          "y": 160.0
+          "x": 250.0,
+          "y": 0.0
         },
         "type": "agent",
         "data": {
@@ -50,8 +50,8 @@
       {
         "id": "reply",
         "position": {
-          "x": 600.0,
-          "y": 160.0
+          "x": 500.0,
+          "y": 0.0
         },
         "type": "output",
         "data": {

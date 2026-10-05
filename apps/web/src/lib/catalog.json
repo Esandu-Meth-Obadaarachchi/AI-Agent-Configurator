@@ -1,0 +1,3465 @@
+{
+ "categories": [
+  {
+   "id": "flow",
+   "title": "Start and finish",
+   "blurb": "Where a conversation enters and leaves the loop."
+  },
+  {
+   "id": "agents",
+   "title": "Agents",
+   "blurb": "Models that think, call tools and hand work to each other."
+  },
+  {
+   "id": "logic",
+   "title": "Logic and loops",
+   "blurb": "Branch, review and repeat until the answer is good."
+  },
+  {
+   "id": "knowledge",
+   "title": "Knowledge",
+   "blurb": "Ground answers in your own documents (RAG)."
+  },
+  {
+   "id": "tools",
+   "title": "Tools",
+   "blurb": "Actions an agent can take. Attach them under an agent."
+  },
+  {
+   "id": "memory",
+   "title": "Memory",
+   "blurb": "Remember conversations and facts across sessions."
+  },
+  {
+   "id": "safety",
+   "title": "Safety and humans",
+   "blurb": "Guardrails and human sign-off before anything risky."
+  }
+ ],
+ "nodes": [
+  {
+   "type": "input",
+   "category": "flow",
+   "title": "Chat input",
+   "icon": "ChatCircleText",
+   "blurb": "The user's message enters here.",
+   "explain": "Every app has exactly one entry point. It receives the user's message and starts the loop.",
+   "role": "flow",
+   "max": 1,
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "out",
+     "kind": "flow",
+     "label": ""
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "greeting",
+     "label": "Greeting shown in the chat UI",
+     "kind": "text"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "output",
+   "category": "flow",
+   "title": "Reply",
+   "icon": "PaperPlaneTilt",
+   "blurb": "Send the final answer back.",
+   "explain": "Ends the turn and streams the last message to the user. Any branch that stops without a Reply ends here implicitly.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "agent",
+   "category": "agents",
+   "title": "Agent",
+   "icon": "Robot",
+   "blurb": "A model with a job and tools.",
+   "explain": "Runs a tool-calling loop: think, call a tool, read the result, repeat, answer. Attach tools, knowledge or memory underneath it.",
+   "tradeoff": "More tools give more reach but more chances to pick the wrong one. Keep each agent focused.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "out",
+     "kind": "flow",
+     "label": ""
+    }
+   ],
+   "accepts": [
+    "tool",
+    "knowledge",
+    "memory"
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "role",
+     "label": "Job in one line",
+     "kind": "text",
+     "help": "Shown to supervisors so they know when to delegate here."
+    },
+    {
+     "key": "system_prompt",
+     "label": "Instructions",
+     "kind": "prompt",
+     "rows": 6,
+     "ai": "system_prompt"
+    },
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "model",
+     "help": "Leave on default to use the project model."
+    },
+    {
+     "key": "effort",
+     "label": "Reasoning effort",
+     "kind": "select",
+     "options": [
+      {
+       "value": "",
+       "label": "Model default"
+      },
+      {
+       "value": "low",
+       "label": "Low"
+      },
+      {
+       "value": "medium",
+       "label": "Medium"
+      },
+      {
+       "value": "high",
+       "label": "High"
+      },
+      {
+       "value": "xhigh",
+       "label": "X-high"
+      },
+      {
+       "value": "max",
+       "label": "Max"
+      }
+     ],
+     "advanced": true,
+     "nullable": true,
+     "help": "Claude only. Higher effort thinks longer and costs more. Low suits routing and chat."
+    },
+    {
+     "key": "temperature",
+     "label": "Temperature",
+     "kind": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "advanced": true,
+     "nullable": true,
+     "help": "Only sent to models that accept it. Claude Opus 5.5, Sonnet 5.5 and Fable ignore it; use effort instead."
+    },
+    {
+     "key": "max_steps",
+     "label": "Max tool steps",
+     "kind": "number",
+     "min": 1,
+     "max": 50,
+     "step": 1,
+     "advanced": true
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "supervisor",
+   "category": "agents",
+   "title": "Supervisor",
+   "icon": "UsersThree",
+   "blurb": "Delegates to worker agents.",
+   "explain": "Reads the conversation, picks the next worker, and repeats until the job is done. Workers you connect from 'Delegate' report back automatically.",
+   "tradeoff": "Flexible and good at open-ended tasks, but every round costs a model call. Cap the rounds.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "delegate",
+     "kind": "flow",
+     "label": "Delegate"
+    },
+    {
+     "id": "done",
+     "kind": "flow",
+     "label": "Done"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "instructions",
+     "label": "How to delegate",
+     "kind": "prompt",
+     "rows": 5
+    },
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "model",
+     "help": "Leave on default to use the project model."
+    },
+    {
+     "key": "max_rounds",
+     "label": "Max rounds",
+     "kind": "number",
+     "min": 1,
+     "max": 30,
+     "step": 1
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "prompt",
+   "category": "agents",
+   "title": "LLM step",
+   "icon": "Sparkle",
+   "blurb": "One model call, no tools.",
+   "explain": "A single, predictable model call: summarise, rewrite, translate, extract. Cheaper and faster than an agent.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "out",
+     "kind": "flow",
+     "label": ""
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "instructions",
+     "label": "Instructions",
+     "kind": "prompt",
+     "rows": 5
+    },
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "model",
+     "help": "Leave on default to use the project model."
+    },
+    {
+     "key": "temperature",
+     "label": "Temperature",
+     "kind": "number",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "advanced": true,
+     "nullable": true,
+     "help": "Only sent to models that accept it. Claude Opus 5.5, Sonnet 5.5 and Fable ignore it; use effort instead."
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "router",
+   "category": "logic",
+   "title": "Router",
+   "icon": "GitFork",
+   "blurb": "Send each request down one branch.",
+   "explain": "Classifies the latest message and follows the matching branch. Use a model for nuance, or keywords for zero cost.",
+   "tradeoff": "Model routing handles fuzzy requests; keyword routing is free, instant and predictable.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": "routes",
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "mode",
+     "label": "Decide with",
+     "kind": "segmented",
+     "options": [
+      {
+       "value": "llm",
+       "label": "Model"
+      },
+      {
+       "value": "keywords",
+       "label": "Keywords"
+      }
+     ]
+    },
+    {
+     "key": "routes",
+     "label": "Branches",
+     "kind": "routes"
+    },
+    {
+     "key": "instructions",
+     "label": "Routing hint",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true
+    },
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "model",
+     "help": "Leave on default to use the project model."
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "critic",
+   "category": "logic",
+   "title": "Review loop",
+   "icon": "ArrowsClockwise",
+   "blurb": "Check the answer, send it back if weak.",
+   "explain": "A reviewer model grades the latest answer against your criteria. 'Revise' loops back with feedback; 'Pass' moves on. The loop stops after the max attempts.",
+   "tradeoff": "Raises quality noticeably, at the cost of one extra call per attempt.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "pass",
+     "kind": "flow",
+     "label": "Pass"
+    },
+    {
+     "id": "revise",
+     "kind": "flow",
+     "label": "Revise"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "criteria",
+     "label": "A good answer…",
+     "kind": "prompt",
+     "rows": 4
+    },
+    {
+     "key": "max_iterations",
+     "label": "Max attempts",
+     "kind": "number",
+     "min": 1,
+     "max": 10,
+     "step": 1
+    },
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "model",
+     "help": "Leave on default to use the project model."
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "custom_step",
+   "category": "logic",
+   "title": "Custom step",
+   "icon": "Code",
+   "blurb": "Your own Python, described in words.",
+   "explain": "Anything the toolkit lacks. Describe it and Claude writes the function, or write it yourself. It lands in backend/app/custom/nodes.py.",
+   "role": "flow",
+   "ai": true,
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "out",
+     "kind": "flow",
+     "label": ""
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "description",
+     "label": "What should this step do?",
+     "kind": "textarea",
+     "rows": 4
+    },
+    {
+     "key": "code",
+     "label": "Python",
+     "kind": "code",
+     "ai": "custom_step",
+     "language": "python"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "knowledge",
+   "category": "knowledge",
+   "title": "Knowledge base",
+   "icon": "Books",
+   "blurb": "Your documents, indexed for search.",
+   "explain": "Loads, chunks and embeds your files into a vector store. Attach it under an agent (as a search tool) or into a Retrieve step.",
+   "tradeoff": "Hybrid search finds exact terms that pure vector search misses. A reranker improves precision but adds latency.",
+   "role": "resource",
+   "kind": "knowledge",
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "description",
+     "label": "What's inside",
+     "kind": "text",
+     "help": "Agents read this to decide when to search."
+    },
+    {
+     "key": "sources",
+     "label": "File types",
+     "kind": "multiselect",
+     "options": [
+      {
+       "value": "pdf",
+       "label": "PDF"
+      },
+      {
+       "value": "markdown",
+       "label": "Markdown"
+      },
+      {
+       "value": "text",
+       "label": "Plain text"
+      },
+      {
+       "value": "html",
+       "label": "HTML"
+      }
+     ]
+    },
+    {
+     "key": "vector_store",
+     "label": "Vector store",
+     "kind": "select",
+     "options": [
+      {
+       "value": "pgvector",
+       "label": "pgvector (Postgres)",
+       "hint": "One database for vectors, chat history and app data."
+      },
+      {
+       "value": "chroma",
+       "label": "Chroma",
+       "hint": "Zero setup. Great for prototypes."
+      }
+     ]
+    },
+    {
+     "key": "embedding",
+     "label": "Embeddings",
+     "kind": "select",
+     "options": [
+      {
+       "value": "openai_small",
+       "label": "OpenAI small",
+       "hint": "text-embedding-3-small. Cheap, strong."
+      },
+      {
+       "value": "openai_large",
+       "label": "OpenAI large",
+       "hint": "text-embedding-3-large. Best recall."
+      },
+      {
+       "value": "local_bge_small",
+       "label": "Local (BGE small)",
+       "hint": "Runs on CPU via fastembed. No API key."
+      }
+     ]
+    },
+    {
+     "key": "retrieval",
+     "label": "Search mode",
+     "kind": "segmented",
+     "options": [
+      {
+       "value": "dense",
+       "label": "Vector"
+      },
+      {
+       "value": "hybrid",
+       "label": "Hybrid"
+      }
+     ]
+    },
+    {
+     "key": "reranker",
+     "label": "Reranker",
+     "kind": "select",
+     "options": [
+      {
+       "value": "none",
+       "label": "None"
+      },
+      {
+       "value": "cross_encoder",
+       "label": "Local cross-encoder",
+       "hint": "Free, runs on CPU."
+      },
+      {
+       "value": "cohere",
+       "label": "Cohere Rerank",
+       "hint": "Hosted, needs COHERE_API_KEY."
+      }
+     ]
+    },
+    {
+     "key": "top_k",
+     "label": "Results per search",
+     "kind": "number",
+     "min": 1,
+     "max": 50,
+     "step": 1
+    },
+    {
+     "key": "chunker",
+     "label": "Chunking",
+     "kind": "segmented",
+     "advanced": true,
+     "options": [
+      {
+       "value": "recursive",
+       "label": "Recursive"
+      },
+      {
+       "value": "fixed",
+       "label": "Fixed size"
+      }
+     ]
+    },
+    {
+     "key": "chunk_size",
+     "label": "Chunk size (characters)",
+     "kind": "number",
+     "min": 100,
+     "max": 8000,
+     "step": 50,
+     "advanced": true
+    },
+    {
+     "key": "overlap",
+     "label": "Overlap (characters)",
+     "kind": "number",
+     "min": 0,
+     "max": 2000,
+     "step": 10,
+     "advanced": true
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "retriever",
+   "category": "knowledge",
+   "title": "Retrieve step",
+   "icon": "MagnifyingGlass",
+   "blurb": "Always look things up before answering.",
+   "explain": "Searches the attached knowledge base with the latest message and hands the results to the next step. Classic RAG: predictable, one search per turn.",
+   "tradeoff": "Always searches, even when not needed. Attaching knowledge to an agent instead lets the agent decide.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "out",
+     "kind": "flow",
+     "label": ""
+    }
+   ],
+   "accepts": [
+    "knowledge"
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "top_k",
+     "label": "Results (blank = knowledge base default)",
+     "kind": "number",
+     "min": 1,
+     "max": 50,
+     "step": 1,
+     "nullable": true
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "web_search",
+   "category": "tools",
+   "title": "Web search",
+   "icon": "Globe",
+   "blurb": "Search the live web (Tavily).",
+   "explain": "Returns titles, links and snippets for a query. Needs TAVILY_API_KEY.",
+   "role": "resource",
+   "kind": "tool",
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "max_results",
+     "label": "Results per search",
+     "kind": "number",
+     "min": 1,
+     "max": 20,
+     "step": 1
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "web_fetch",
+   "category": "tools",
+   "title": "Read web page",
+   "icon": "FileHtml",
+   "blurb": "Fetch a URL as clean text.",
+   "explain": "Downloads a page and strips it to readable text. Pairs well with web search.",
+   "role": "resource",
+   "kind": "tool",
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "max_chars",
+     "label": "Max characters returned",
+     "kind": "number",
+     "min": 500,
+     "max": 200000,
+     "step": 500
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "http_api",
+   "category": "tools",
+   "title": "HTTP API",
+   "icon": "PlugsConnected",
+   "blurb": "Call one endpoint of your API.",
+   "explain": "Turns a single REST endpoint into a tool. Parameters become tool inputs the model fills in.",
+   "role": "resource",
+   "kind": "tool",
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "tool_name",
+     "label": "Tool name",
+     "kind": "text",
+     "mono": true
+    },
+    {
+     "key": "description",
+     "label": "When should the agent call it?",
+     "kind": "textarea",
+     "rows": 2
+    },
+    {
+     "key": "method",
+     "label": "Method",
+     "kind": "segmented",
+     "options": [
+      {
+       "value": "GET",
+       "label": "GET"
+      },
+      {
+       "value": "POST",
+       "label": "POST"
+      },
+      {
+       "value": "PUT",
+       "label": "PUT"
+      },
+      {
+       "value": "PATCH",
+       "label": "PATCH"
+      },
+      {
+       "value": "DELETE",
+       "label": "DELETE"
+      }
+     ]
+    },
+    {
+     "key": "base_url",
+     "label": "Base URL",
+     "kind": "text",
+     "mono": true
+    },
+    {
+     "key": "path",
+     "label": "Path",
+     "kind": "text",
+     "mono": true,
+     "help": "Use {name} for path parameters."
+    },
+    {
+     "key": "params",
+     "label": "Parameters",
+     "kind": "params"
+    },
+    {
+     "key": "auth_header",
+     "label": "Auth header",
+     "kind": "text",
+     "mono": true,
+     "advanced": true
+    },
+    {
+     "key": "auth_env",
+     "label": "Token env var",
+     "kind": "text",
+     "mono": true,
+     "advanced": true,
+     "nullable": true
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "mcp_server",
+   "category": "tools",
+   "title": "MCP server",
+   "icon": "Plug",
+   "blurb": "Every tool from an MCP server.",
+   "explain": "Connects to a Model Context Protocol server and exposes all of its tools to the agent. Works with local (stdio) and remote (HTTP) servers.",
+   "role": "resource",
+   "kind": "tool",
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "server_name",
+     "label": "Server name",
+     "kind": "text",
+     "mono": true
+    },
+    {
+     "key": "transport",
+     "label": "Transport",
+     "kind": "segmented",
+     "options": [
+      {
+       "value": "stdio",
+       "label": "Local (stdio)"
+      },
+      {
+       "value": "streamable_http",
+       "label": "HTTP"
+      },
+      {
+       "value": "sse",
+       "label": "SSE"
+      }
+     ]
+    },
+    {
+     "key": "command",
+     "label": "Command",
+     "kind": "text",
+     "mono": true,
+     "showIf": {
+      "transport": "stdio"
+     }
+    },
+    {
+     "key": "args",
+     "label": "Arguments",
+     "kind": "tags",
+     "mono": true,
+     "showIf": {
+      "transport": "stdio"
+     }
+    },
+    {
+     "key": "url",
+     "label": "Server URL",
+     "kind": "text",
+     "mono": true,
+     "showIf": {
+      "transport": [
+       "streamable_http",
+       "sse"
+      ]
+     }
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "calculator",
+   "category": "tools",
+   "title": "Calculator",
+   "icon": "Calculator",
+   "blurb": "Exact arithmetic.",
+   "explain": "Safely evaluates maths expressions so the model never guesses at numbers.",
+   "role": "resource",
+   "kind": "tool",
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "sql_database",
+   "category": "tools",
+   "title": "SQL database",
+   "icon": "Database",
+   "blurb": "Query your database.",
+   "explain": "Gives the agent a list-tables tool, a describe-table tool and a read-only query tool.",
+   "tradeoff": "Keep read-only on unless you really need writes. Pair writes with a human approval step.",
+   "role": "resource",
+   "kind": "tool",
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "dialect",
+     "label": "Database",
+     "kind": "segmented",
+     "options": [
+      {
+       "value": "postgres",
+       "label": "Postgres"
+      },
+      {
+       "value": "mysql",
+       "label": "MySQL"
+      },
+      {
+       "value": "sqlite",
+       "label": "SQLite"
+      }
+     ]
+    },
+    {
+     "key": "url_env",
+     "label": "Connection string env var",
+     "kind": "text",
+     "mono": true
+    },
+    {
+     "key": "read_only",
+     "label": "Read-only",
+     "kind": "toggle"
+    },
+    {
+     "key": "max_rows",
+     "label": "Max rows returned",
+     "kind": "number",
+     "min": 1,
+     "max": 1000,
+     "step": 1
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "custom_tool",
+   "category": "tools",
+   "title": "Custom tool",
+   "icon": "Wrench",
+   "blurb": "Describe a tool; Claude writes it.",
+   "explain": "For anything without a ready-made block. Describe the tool and its inputs, and Claude writes typed Python that passes a contract test. The code is saved into your spec, so exports stay repeatable.",
+   "role": "resource",
+   "kind": "tool",
+   "ai": true,
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "tool_name",
+     "label": "Tool name",
+     "kind": "text",
+     "mono": true
+    },
+    {
+     "key": "description",
+     "label": "What does it do?",
+     "kind": "textarea",
+     "rows": 3
+    },
+    {
+     "key": "inputs",
+     "label": "Inputs",
+     "kind": "toolinputs"
+    },
+    {
+     "key": "env",
+     "label": "Secrets it needs (env vars)",
+     "kind": "tags",
+     "mono": true,
+     "advanced": true
+    },
+    {
+     "key": "python_deps",
+     "label": "Python packages",
+     "kind": "tags",
+     "mono": true,
+     "advanced": true
+    },
+    {
+     "key": "code",
+     "label": "Python",
+     "kind": "code",
+     "ai": "custom_tool",
+     "language": "python"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "memory",
+   "category": "memory",
+   "title": "Memory",
+   "icon": "Brain",
+   "blurb": "Conversation history and long-term facts.",
+   "explain": "Short-term memory keeps each conversation thread (and is what lets approvals pause and resume). Long-term memory gives attached agents remember and recall tools that persist across threads.",
+   "tradeoff": "Postgres survives restarts and scales; SQLite is a single file; in-memory resets on restart.",
+   "role": "resource",
+   "kind": "memory",
+   "max": 1,
+   "inputs": [],
+   "outputs": [
+    {
+     "id": "attach",
+     "kind": "attach"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "short_term",
+     "label": "Conversation store",
+     "kind": "segmented",
+     "options": [
+      {
+       "value": "postgres",
+       "label": "Postgres"
+      },
+      {
+       "value": "sqlite",
+       "label": "SQLite"
+      },
+      {
+       "value": "memory",
+       "label": "In-memory"
+      }
+     ]
+    },
+    {
+     "key": "long_term",
+     "label": "Long-term memory for attached agents",
+     "kind": "toggle"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "guardrail",
+   "category": "safety",
+   "title": "Guardrail",
+   "icon": "ShieldCheck",
+   "blurb": "Screen messages before they go further.",
+   "explain": "Deterministic checks, no model call: redact emails, phone and card numbers, block common prompt-injection phrases, cap length, block terms.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "pass",
+     "kind": "flow",
+     "label": "Pass"
+    },
+    {
+     "id": "blocked",
+     "kind": "flow",
+     "label": "Blocked"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "redact_pii",
+     "label": "Redact personal data",
+     "kind": "toggle"
+    },
+    {
+     "key": "block_prompt_injection",
+     "label": "Block prompt injection",
+     "kind": "toggle"
+    },
+    {
+     "key": "max_input_chars",
+     "label": "Max message length",
+     "kind": "number",
+     "min": 100,
+     "max": 200000,
+     "step": 100
+    },
+    {
+     "key": "blocked_terms",
+     "label": "Blocked terms",
+     "kind": "tags"
+    },
+    {
+     "key": "blocked_message",
+     "label": "Reply when blocked",
+     "kind": "text"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  },
+  {
+   "type": "approval",
+   "category": "safety",
+   "title": "Human approval",
+   "icon": "HandPalm",
+   "blurb": "Pause until a person signs off.",
+   "explain": "Pauses the run and shows an approval card in the chat UI. The run resumes exactly where it stopped, even after a restart if memory is persistent.",
+   "role": "flow",
+   "inputs": [
+    {
+     "id": "in",
+     "kind": "flow"
+    }
+   ],
+   "outputs": [
+    {
+     "id": "approved",
+     "kind": "flow",
+     "label": "Approved"
+    },
+    {
+     "id": "rejected",
+     "kind": "flow",
+     "label": "Rejected"
+    }
+   ],
+   "fields": [
+    {
+     "key": "label",
+     "label": "Name on canvas",
+     "kind": "text",
+     "placeholder": "e.g. Researcher"
+    },
+    {
+     "key": "prompt",
+     "label": "Question for the reviewer",
+     "kind": "text"
+    },
+    {
+     "key": "allow_edit",
+     "label": "Reviewer can edit the answer",
+     "kind": "toggle"
+    },
+    {
+     "key": "notes",
+     "label": "Notes",
+     "kind": "textarea",
+     "rows": 2,
+     "advanced": true,
+     "help": "Private notes. Copied into PROMPT_PACK.md."
+    }
+   ]
+  }
+ ],
+ "models": {
+  "anthropic": [
+   {
+    "value": "claude-opus-5-5",
+    "label": "Claude Opus 5.5",
+    "hint": "The default. Strongest all-rounder for agents and supervisors."
+   },
+   {
+    "value": "claude-sonnet-5-5",
+    "label": "Claude Sonnet 5.5",
+    "hint": "Faster and cheaper. Good for high-volume workers."
+   },
+   {
+    "value": "claude-haiku-4-5",
+    "label": "Claude Haiku 4.5",
+    "hint": "Fastest and cheapest. Good for routers and critics."
+   },
+   {
+    "value": "claude-fable-5-1",
+    "label": "Claude Fable 5.1",
+    "hint": "Anthropic's most capable model, priced above Opus. For the hardest long tasks."
+   }
+  ],
+  "openai": [
+   {
+    "value": "gpt-5",
+    "label": "GPT-5",
+    "hint": "OpenAI flagship."
+   },
+   {
+    "value": "gpt-5-mini",
+    "label": "GPT-5 mini",
+    "hint": "Cheaper, faster."
+   },
+   {
+    "value": "gpt-4.1",
+    "label": "GPT-4.1",
+    "hint": "Previous generation."
+   }
+  ]
+ },
+ "default_model": {
+  "anthropic": "claude-opus-5-5",
+  "openai": "gpt-5-mini"
+ },
+ "project_fields": [
+  {
+   "key": "project.name",
+   "label": "Project name",
+   "kind": "text",
+   "mono": true,
+   "help": "Lower case, numbers and hyphens."
+  },
+  {
+   "key": "project.description",
+   "label": "What does it do?",
+   "kind": "textarea",
+   "rows": 2
+  },
+  {
+   "key": "llm.provider",
+   "label": "Model provider",
+   "kind": "segmented",
+   "options": [
+    {
+     "value": "anthropic",
+     "label": "Anthropic"
+    },
+    {
+     "value": "openai",
+     "label": "OpenAI"
+    }
+   ]
+  },
+  {
+   "key": "llm.model",
+   "label": "Default model",
+   "kind": "model"
+  },
+  {
+   "key": "llm.effort",
+   "label": "Reasoning effort",
+   "kind": "select",
+   "options": [
+    {
+     "value": "",
+     "label": "Model default"
+    },
+    {
+     "value": "low",
+     "label": "Low"
+    },
+    {
+     "value": "medium",
+     "label": "Medium"
+    },
+    {
+     "value": "high",
+     "label": "High"
+    },
+    {
+     "value": "xhigh",
+     "label": "X-high"
+    },
+    {
+     "value": "max",
+     "label": "Max"
+    }
+   ],
+   "nullable": true,
+   "help": "Claude only. Default lets the model decide."
+  },
+  {
+   "key": "llm.temperature",
+   "label": "Temperature",
+   "kind": "number",
+   "min": 0,
+   "max": 1,
+   "step": 0.05,
+   "advanced": true,
+   "help": "Only sent to models that accept sampling settings."
+  },
+  {
+   "key": "backend.language",
+   "label": "Backend",
+   "kind": "segmented",
+   "options": [
+    {
+     "value": "python",
+     "label": "Python"
+    },
+    {
+     "value": "typescript",
+     "label": "TypeScript",
+     "disabled": true,
+     "hint": "Coming soon"
+    }
+   ]
+  },
+  {
+   "key": "ui.framework",
+   "label": "Interface",
+   "kind": "segmented",
+   "options": [
+    {
+     "value": "nextjs",
+     "label": "Next.js chat"
+    },
+    {
+     "value": "none",
+     "label": "API only"
+    }
+   ]
+  },
+  {
+   "key": "ui.title",
+   "label": "Chat title",
+   "kind": "text",
+   "showIf": {
+    "ui.framework": "nextjs"
+   }
+  },
+  {
+   "key": "ui.streaming",
+   "label": "Stream tokens",
+   "kind": "toggle",
+   "showIf": {
+    "ui.framework": "nextjs"
+   }
+  },
+  {
+   "key": "ui.show_steps",
+   "label": "Show agent steps",
+   "kind": "toggle",
+   "showIf": {
+    "ui.framework": "nextjs"
+   }
+  },
+  {
+   "key": "ui.feedback",
+   "label": "Thumbs up / down",
+   "kind": "toggle",
+   "showIf": {
+    "ui.framework": "nextjs"
+   }
+  },
+  {
+   "key": "deploy.target",
+   "label": "Deployment",
+   "kind": "segmented",
+   "options": [
+    {
+     "value": "docker_compose",
+     "label": "Docker Compose"
+    },
+    {
+     "value": "none",
+     "label": "None"
+    }
+   ]
+  },
+  {
+   "key": "deploy.backend_port",
+   "label": "API port",
+   "kind": "number",
+   "min": 1024,
+   "max": 65535,
+   "step": 1,
+   "advanced": true
+  },
+  {
+   "key": "deploy.frontend_port",
+   "label": "UI port",
+   "kind": "number",
+   "min": 1024,
+   "max": 65535,
+   "step": 1,
+   "advanced": true
+  },
+  {
+   "key": "observability.langsmith",
+   "label": "LangSmith tracing",
+   "kind": "toggle"
+  }
+ ],
+ "defaults": {
+  "input": {
+   "label": "Chat input",
+   "notes": "",
+   "greeting": "Hi! What can I help you with?"
+  },
+  "output": {
+   "label": "Reply",
+   "notes": ""
+  },
+  "agent": {
+   "label": "Agent",
+   "notes": "",
+   "role": "A helpful assistant.",
+   "system_prompt": "You are a helpful assistant. Use your tools when they help.",
+   "model": null,
+   "temperature": null,
+   "effort": null,
+   "max_steps": 8
+  },
+  "supervisor": {
+   "label": "Supervisor",
+   "notes": "",
+   "instructions": "Break the request into steps. Delegate each step to the best worker. Finish when the answer is complete.",
+   "model": null,
+   "max_rounds": 6
+  },
+  "prompt": {
+   "label": "LLM step",
+   "notes": "",
+   "instructions": "Summarise the conversation so far in three bullet points.",
+   "model": null,
+   "temperature": null
+  },
+  "router": {
+   "label": "Router",
+   "notes": "",
+   "mode": "llm",
+   "instructions": "Pick the route that best matches the latest user message.",
+   "routes": [
+    {
+     "id": "a",
+     "label": "Route A",
+     "description": "First kind of request",
+     "keywords": []
+    },
+    {
+     "id": "b",
+     "label": "Route B",
+     "description": "Everything else",
+     "keywords": []
+    }
+   ],
+   "model": null
+  },
+  "critic": {
+   "label": "Review loop",
+   "notes": "",
+   "criteria": "The answer is correct, complete, cites sources where relevant and directly answers the question.",
+   "max_iterations": 2,
+   "model": null
+  },
+  "custom_step": {
+   "label": "Custom step",
+   "notes": "",
+   "description": "Describe what this step does to the conversation state.",
+   "code": null,
+   "generated_by": null
+  },
+  "knowledge": {
+   "label": "Knowledge base",
+   "notes": "",
+   "description": "Company documents",
+   "sources": [
+    "pdf",
+    "markdown"
+   ],
+   "chunker": "recursive",
+   "chunk_size": 800,
+   "overlap": 100,
+   "embedding": "openai_small",
+   "vector_store": "pgvector",
+   "retrieval": "hybrid",
+   "top_k": 6,
+   "reranker": "none"
+  },
+  "retriever": {
+   "label": "Retrieve step",
+   "notes": "",
+   "top_k": null
+  },
+  "web_search": {
+   "label": "Web search",
+   "notes": "",
+   "provider": "tavily",
+   "max_results": 5
+  },
+  "web_fetch": {
+   "label": "Read web page",
+   "notes": "",
+   "max_chars": 12000
+  },
+  "http_api": {
+   "label": "HTTP API",
+   "notes": "",
+   "tool_name": "call_api",
+   "description": "Call the internal API.",
+   "method": "GET",
+   "base_url": "https://api.example.com",
+   "path": "/items/{item_id}",
+   "params": [
+    {
+     "name": "item_id",
+     "description": "",
+     "location": "path"
+    }
+   ],
+   "auth_header": "Authorization",
+   "auth_env": "API_TOKEN"
+  },
+  "mcp_server": {
+   "label": "MCP server",
+   "notes": "",
+   "server_name": "filesystem",
+   "transport": "stdio",
+   "command": "npx",
+   "args": [
+    "-y",
+    "@modelcontextprotocol/server-filesystem",
+    "/data"
+   ],
+   "url": ""
+  },
+  "calculator": {
+   "label": "Calculator",
+   "notes": ""
+  },
+  "sql_database": {
+   "label": "SQL database",
+   "notes": "",
+   "dialect": "postgres",
+   "url_env": "SQL_TOOL_DATABASE_URL",
+   "read_only": true,
+   "max_rows": 50
+  },
+  "custom_tool": {
+   "label": "Custom tool",
+   "notes": "",
+   "tool_name": "my_tool",
+   "description": "Describe what the tool does, in plain words.",
+   "inputs": [
+    {
+     "name": "query",
+     "type": "str",
+     "description": "What to look up"
+    }
+   ],
+   "env": [],
+   "python_deps": [],
+   "code": null,
+   "generated_by": null
+  },
+  "memory": {
+   "label": "Memory",
+   "notes": "",
+   "short_term": "postgres",
+   "long_term": false
+  },
+  "guardrail": {
+   "label": "Guardrail",
+   "notes": "",
+   "redact_pii": true,
+   "block_prompt_injection": true,
+   "max_input_chars": 8000,
+   "blocked_terms": [],
+   "blocked_message": "Sorry, I can't help with that request."
+  },
+  "approval": {
+   "label": "Human approval",
+   "notes": "",
+   "prompt": "Review this response before it is sent.",
+   "allow_edit": true
+  }
+ },
+ "spec_defaults": {
+  "spec_version": "0.2",
+  "project": {
+   "name": "my-agent",
+   "description": ""
+  },
+  "llm": {
+   "provider": "anthropic",
+   "model": "claude-opus-5-5",
+   "temperature": 0.2,
+   "effort": null,
+   "max_tokens": 4096
+  },
+  "backend": {
+   "language": "python"
+  },
+  "graph": {
+   "nodes": [],
+   "edges": []
+  },
+  "ui": {
+   "framework": "nextjs",
+   "streaming": true,
+   "feedback": true,
+   "show_steps": true,
+   "title": ""
+  },
+  "deploy": {
+   "target": "docker_compose",
+   "backend_port": 8000,
+   "frontend_port": 3000
+  },
+  "observability": {
+   "langsmith": false
+  }
+ },
+ "blueprints": [
+  {
+   "id": "blank",
+   "title": "Single agent",
+   "blurb": "One agent, ready for tools. The smallest useful loop.",
+   "tags": [
+    "starter"
+   ],
+   "level": "beginner",
+   "file": "blank.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "my-agent",
+     "description": ""
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Chat input",
+        "notes": "",
+        "greeting": "Hi! What can I help you with?"
+       }
+      },
+      {
+       "id": "assistant",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Assistant",
+        "notes": "",
+        "role": "A helpful assistant.",
+        "system_prompt": "You are a helpful assistant. Use your tools when they help.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Reply",
+        "notes": ""
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-assistant",
+       "source": "start",
+       "target": "assistant",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-assistant-out-reply",
+       "source": "assistant",
+       "target": "reply",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  },
+  {
+   "id": "rag-starter",
+   "title": "RAG pipeline",
+   "blurb": "Always retrieve, then answer with citations. Local embeddings, no second key.",
+   "tags": [
+    "rag"
+   ],
+   "level": "beginner",
+   "file": "rag-starter.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "rag-starter",
+     "description": "The classic RAG pipeline: always retrieve, then answer. Runs with one API key."
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Chat input",
+        "notes": "",
+        "greeting": "Hi! What can I help you with?"
+       }
+      },
+      {
+       "id": "retrieve",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "retriever",
+       "data": {
+        "label": "Find passages",
+        "notes": "",
+        "top_k": null
+       }
+      },
+      {
+       "id": "answer",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "prompt",
+       "data": {
+        "label": "Answer from passages",
+        "notes": "",
+        "instructions": "Answer the user's question using only the retrieved passages. Cite passages as [1], [2]. If they don't answer the question, say you don't know.",
+        "model": null,
+        "temperature": null
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 750.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Reply",
+        "notes": ""
+       }
+      },
+      {
+       "id": "kb",
+       "position": {
+        "x": 250.0,
+        "y": 300.0
+       },
+       "type": "knowledge",
+       "data": {
+        "label": "Notes",
+        "notes": "",
+        "description": "Your notes and documents",
+        "sources": [
+         "pdf",
+         "markdown",
+         "text"
+        ],
+        "chunker": "recursive",
+        "chunk_size": 800,
+        "overlap": 100,
+        "embedding": "local_bge_small",
+        "vector_store": "chroma",
+        "retrieval": "hybrid",
+        "top_k": 6,
+        "reranker": "cross_encoder"
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-retrieve",
+       "source": "start",
+       "target": "retrieve",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-retrieve-out-answer",
+       "source": "retrieve",
+       "target": "answer",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-answer-out-reply",
+       "source": "answer",
+       "target": "reply",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "a-kb-retrieve",
+       "source": "kb",
+       "target": "retrieve",
+       "sourceHandle": "attach",
+       "targetHandle": "knowledge"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  },
+  {
+   "id": "docs-qa",
+   "title": "Docs Q&A agent",
+   "blurb": "An agent that searches your documents when it needs to, with memory.",
+   "tags": [
+    "rag",
+    "memory"
+   ],
+   "level": "beginner",
+   "file": "docs-qa.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "docs-qa",
+     "description": "Answer questions over your company PDFs and Markdown, with sources."
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Chat input",
+        "notes": "",
+        "greeting": "Ask me anything about the docs."
+       }
+      },
+      {
+       "id": "assistant",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Docs assistant",
+        "notes": "",
+        "role": "Answers questions using the company documents.",
+        "system_prompt": "You answer questions about the company's documents.\nAlways search the knowledge base before answering. Quote the source file for every claim.\nIf the documents don't contain the answer, say so plainly instead of guessing.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Reply",
+        "notes": ""
+       }
+      },
+      {
+       "id": "docs",
+       "position": {
+        "x": 250.0,
+        "y": 300.0
+       },
+       "type": "knowledge",
+       "data": {
+        "label": "Company docs",
+        "notes": "",
+        "description": "Company policies, handbooks and product docs",
+        "sources": [
+         "pdf",
+         "markdown"
+        ],
+        "chunker": "recursive",
+        "chunk_size": 800,
+        "overlap": 100,
+        "embedding": "local_bge_small",
+        "vector_store": "pgvector",
+        "retrieval": "hybrid",
+        "top_k": 6,
+        "reranker": "none"
+       }
+      },
+      {
+       "id": "memory",
+       "position": {
+        "x": 440.0,
+        "y": 300.0
+       },
+       "type": "memory",
+       "data": {
+        "label": "Memory",
+        "notes": "",
+        "short_term": "postgres",
+        "long_term": false
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-assistant",
+       "source": "start",
+       "target": "assistant",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-assistant-out-reply",
+       "source": "assistant",
+       "target": "reply",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "a-docs-assistant",
+       "source": "docs",
+       "target": "assistant",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-memory-assistant",
+       "source": "memory",
+       "target": "assistant",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  },
+  {
+   "id": "support-bot",
+   "title": "Support desk",
+   "blurb": "Guardrail, router, two specialist agents and a human approval for refunds.",
+   "tags": [
+    "router",
+    "approval",
+    "rag"
+   ],
+   "level": "intermediate",
+   "file": "support-bot.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "support-bot",
+     "description": "Triage support requests to billing or technical agents. Refunds need a human sign-off."
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Chat input",
+        "notes": "",
+        "greeting": "Hi! How can we help today?"
+       }
+      },
+      {
+       "id": "guard",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "guardrail",
+       "data": {
+        "label": "Screen message",
+        "notes": "",
+        "redact_pii": true,
+        "block_prompt_injection": true,
+        "max_input_chars": 8000,
+        "blocked_terms": [],
+        "blocked_message": "Sorry, I can't help with that request."
+       }
+      },
+      {
+       "id": "triage",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "router",
+       "data": {
+        "label": "Triage",
+        "notes": "",
+        "mode": "llm",
+        "instructions": "Pick the route that best matches the latest user message.",
+        "routes": [
+         {
+          "id": "billing",
+          "label": "Billing",
+          "description": "Payments, invoices, refunds, plans",
+          "keywords": [
+           "refund",
+           "invoice",
+           "charge",
+           "billing",
+           "plan"
+          ]
+         },
+         {
+          "id": "technical",
+          "label": "Technical",
+          "description": "Bugs, errors, how-to questions about the product",
+          "keywords": [
+           "error",
+           "bug",
+           "crash",
+           "how do i"
+          ]
+         },
+         {
+          "id": "other",
+          "label": "Other",
+          "description": "Greetings and anything else",
+          "keywords": []
+         }
+        ],
+        "model": null
+       }
+      },
+      {
+       "id": "billing",
+       "position": {
+        "x": 750.0,
+        "y": -185.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Billing agent",
+        "notes": "",
+        "role": "Handles payments, invoices and refunds.",
+        "system_prompt": "You handle billing questions. Look up the order before discussing it. Offer refunds only when the order qualifies, and explain why.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "tech",
+       "position": {
+        "x": 750.0,
+        "y": 0.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Technical agent",
+        "notes": "",
+        "role": "Solves product problems using the help centre.",
+        "system_prompt": "You solve technical problems. Search the help centre first, then give numbered steps. Ask for the error message if you need it.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "smalltalk",
+       "position": {
+        "x": 750.0,
+        "y": 185.0
+       },
+       "type": "prompt",
+       "data": {
+        "label": "Friendly reply",
+        "notes": "",
+        "instructions": "Reply briefly and warmly, then ask how you can help with billing or a technical issue.",
+        "model": null,
+        "temperature": null
+       }
+      },
+      {
+       "id": "approve",
+       "position": {
+        "x": 1000.0,
+        "y": 0.0
+       },
+       "type": "approval",
+       "data": {
+        "label": "Approve refund",
+        "notes": "",
+        "prompt": "A billing reply is ready. Approve it before it reaches the customer?",
+        "allow_edit": true
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 1250.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Reply",
+        "notes": ""
+       }
+      },
+      {
+       "id": "orders",
+       "position": {
+        "x": 750.0,
+        "y": 485.0
+       },
+       "type": "http_api",
+       "data": {
+        "label": "Orders API",
+        "notes": "",
+        "tool_name": "get_order",
+        "description": "Look up an order by its id: status, amount and refund eligibility.",
+        "method": "GET",
+        "base_url": "https://api.example.com",
+        "path": "/orders/{order_id}",
+        "params": [
+         {
+          "name": "order_id",
+          "description": "The order id, e.g. ORD-1234",
+          "location": "path"
+         }
+        ],
+        "auth_header": "Authorization",
+        "auth_env": "API_TOKEN"
+       }
+      },
+      {
+       "id": "helpdocs",
+       "position": {
+        "x": 1130.0,
+        "y": 485.0
+       },
+       "type": "knowledge",
+       "data": {
+        "label": "Help centre",
+        "notes": "",
+        "description": "Product help-centre articles",
+        "sources": [
+         "pdf",
+         "markdown"
+        ],
+        "chunker": "recursive",
+        "chunk_size": 800,
+        "overlap": 100,
+        "embedding": "local_bge_small",
+        "vector_store": "pgvector",
+        "retrieval": "hybrid",
+        "top_k": 6,
+        "reranker": "none"
+       }
+      },
+      {
+       "id": "memory",
+       "position": {
+        "x": 940.0,
+        "y": 485.0
+       },
+       "type": "memory",
+       "data": {
+        "label": "Memory",
+        "notes": "",
+        "short_term": "postgres",
+        "long_term": false
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-guard",
+       "source": "start",
+       "target": "guard",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-guard-pass-triage",
+       "source": "guard",
+       "target": "triage",
+       "sourceHandle": "pass",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-guard-blocked-reply",
+       "source": "guard",
+       "target": "reply",
+       "sourceHandle": "blocked",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-triage-route:billing-billing",
+       "source": "triage",
+       "target": "billing",
+       "sourceHandle": "route:billing",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-triage-route:technical-tech",
+       "source": "triage",
+       "target": "tech",
+       "sourceHandle": "route:technical",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-triage-route:other-smalltalk",
+       "source": "triage",
+       "target": "smalltalk",
+       "sourceHandle": "route:other",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-billing-out-approve",
+       "source": "billing",
+       "target": "approve",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-approve-approved-reply",
+       "source": "approve",
+       "target": "reply",
+       "sourceHandle": "approved",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-approve-rejected-billing",
+       "source": "approve",
+       "target": "billing",
+       "sourceHandle": "rejected",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-tech-out-reply",
+       "source": "tech",
+       "target": "reply",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-smalltalk-out-reply",
+       "source": "smalltalk",
+       "target": "reply",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "a-orders-billing",
+       "source": "orders",
+       "target": "billing",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-helpdocs-tech",
+       "source": "helpdocs",
+       "target": "tech",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-memory-billing",
+       "source": "memory",
+       "target": "billing",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  },
+  {
+   "id": "research-team",
+   "title": "Research team",
+   "blurb": "A supervisor delegates to three workers; a reviewer loops until the report holds up.",
+   "tags": [
+    "multi-agent",
+    "loop"
+   ],
+   "level": "advanced",
+   "file": "research-team.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "research-team",
+     "description": "A supervisor runs a researcher, an analyst and a writer, and a reviewer checks the report."
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Chat input",
+        "notes": "",
+        "greeting": "What should the team research?"
+       }
+      },
+      {
+       "id": "lead",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "supervisor",
+       "data": {
+        "label": "Research lead",
+        "notes": "",
+        "instructions": "You lead a small research team. Plan the work, then delegate one step at a time:\n- researcher: finds and reads sources on the web\n- analyst: checks numbers and does calculations\n- writer: drafts the final report\nFinish once the writer has produced a report that answers the question.",
+        "model": null,
+        "max_rounds": 8
+       }
+      },
+      {
+       "id": "researcher",
+       "position": {
+        "x": 500.0,
+        "y": -185.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Researcher",
+        "notes": "",
+        "role": "Finds and reads sources on the web.",
+        "system_prompt": "Search the web, open the most relevant pages and report key facts with their URLs. Prefer primary sources.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "analyst",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Analyst",
+        "notes": "",
+        "role": "Checks numbers and does calculations.",
+        "system_prompt": "Verify every number the team relies on. Use the calculator for arithmetic. Flag anything that doesn't add up.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "writer",
+       "position": {
+        "x": 500.0,
+        "y": 185.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Writer",
+        "notes": "",
+        "role": "Writes the final report.",
+        "system_prompt": "Write a clear, well-structured report from the team's findings. Use headings and cite sources inline.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "review",
+       "position": {
+        "x": 750.0,
+        "y": 0.0
+       },
+       "type": "critic",
+       "data": {
+        "label": "Fact check",
+        "notes": "",
+        "criteria": "Every claim is supported by a cited source, numbers are consistent, and the report answers the original question.",
+        "max_iterations": 2,
+        "model": null
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 1000.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Reply",
+        "notes": ""
+       }
+      },
+      {
+       "id": "search",
+       "position": {
+        "x": 500.0,
+        "y": 485.0
+       },
+       "type": "web_search",
+       "data": {
+        "label": "Web search",
+        "notes": "",
+        "provider": "tavily",
+        "max_results": 5
+       }
+      },
+      {
+       "id": "read",
+       "position": {
+        "x": 690.0,
+        "y": 485.0
+       },
+       "type": "web_fetch",
+       "data": {
+        "label": "Read web page",
+        "notes": "",
+        "max_chars": 12000
+       }
+      },
+      {
+       "id": "calc",
+       "position": {
+        "x": 880.0,
+        "y": 485.0
+       },
+       "type": "calculator",
+       "data": {
+        "label": "Calculator",
+        "notes": ""
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-lead",
+       "source": "start",
+       "target": "lead",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-lead-delegate-researcher",
+       "source": "lead",
+       "target": "researcher",
+       "sourceHandle": "delegate",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-lead-delegate-analyst",
+       "source": "lead",
+       "target": "analyst",
+       "sourceHandle": "delegate",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-lead-delegate-writer",
+       "source": "lead",
+       "target": "writer",
+       "sourceHandle": "delegate",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-lead-done-review",
+       "source": "lead",
+       "target": "review",
+       "sourceHandle": "done",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-review-pass-reply",
+       "source": "review",
+       "target": "reply",
+       "sourceHandle": "pass",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-review-revise-lead",
+       "source": "review",
+       "target": "lead",
+       "sourceHandle": "revise",
+       "targetHandle": "in"
+      },
+      {
+       "id": "a-search-researcher",
+       "source": "search",
+       "target": "researcher",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-read-researcher",
+       "source": "read",
+       "target": "researcher",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-calc-analyst",
+       "source": "calc",
+       "target": "analyst",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  },
+  {
+   "id": "content-studio",
+   "title": "Content studio",
+   "blurb": "Writer and editor loop, then human sign-off before publishing.",
+   "tags": [
+    "loop",
+    "approval"
+   ],
+   "level": "intermediate",
+   "file": "content-studio.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "content-studio",
+     "description": "Draft, self-review in a loop, then a human approves before publishing."
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Brief",
+        "notes": "",
+        "greeting": "Describe the piece you need."
+       }
+      },
+      {
+       "id": "writer",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Writer",
+        "notes": "",
+        "role": "Writes on-brand drafts.",
+        "system_prompt": "Write the requested piece. Match the brand voice: plain, warm, specific. When you receive reviewer feedback, revise the whole draft.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "editor",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "critic",
+       "data": {
+        "label": "Editor review",
+        "notes": "",
+        "criteria": "Clear structure, no filler, a concrete call to action, under the requested length, no factual claims without support.",
+        "max_iterations": 3,
+        "model": null
+       }
+      },
+      {
+       "id": "signoff",
+       "position": {
+        "x": 750.0,
+        "y": 0.0
+       },
+       "type": "approval",
+       "data": {
+        "label": "Publish sign-off",
+        "notes": "",
+        "prompt": "Approve this draft for publishing?",
+        "allow_edit": true
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 1000.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Publish",
+        "notes": ""
+       }
+      },
+      {
+       "id": "search",
+       "position": {
+        "x": 250.0,
+        "y": 300.0
+       },
+       "type": "web_search",
+       "data": {
+        "label": "Web search",
+        "notes": "",
+        "provider": "tavily",
+        "max_results": 5
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-writer",
+       "source": "start",
+       "target": "writer",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-writer-out-editor",
+       "source": "writer",
+       "target": "editor",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-editor-revise-writer",
+       "source": "editor",
+       "target": "writer",
+       "sourceHandle": "revise",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-editor-pass-signoff",
+       "source": "editor",
+       "target": "signoff",
+       "sourceHandle": "pass",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-signoff-approved-reply",
+       "source": "signoff",
+       "target": "reply",
+       "sourceHandle": "approved",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-signoff-rejected-writer",
+       "source": "signoff",
+       "target": "writer",
+       "sourceHandle": "rejected",
+       "targetHandle": "in"
+      },
+      {
+       "id": "a-search-writer",
+       "source": "search",
+       "target": "writer",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  },
+  {
+   "id": "data-analyst",
+   "title": "SQL analyst",
+   "blurb": "Plain-English questions over your database, read-only, explained simply.",
+   "tags": [
+    "tools",
+    "guardrail"
+   ],
+   "level": "intermediate",
+   "file": "data-analyst.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "data-analyst",
+     "description": "Ask questions about your database in plain English. Read-only by default."
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Chat input",
+        "notes": "",
+        "greeting": "What would you like to know about the data?"
+       }
+      },
+      {
+       "id": "guard",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "guardrail",
+       "data": {
+        "label": "Screen message",
+        "notes": "",
+        "redact_pii": true,
+        "block_prompt_injection": true,
+        "max_input_chars": 8000,
+        "blocked_terms": [
+         "drop table",
+         "delete from"
+        ],
+        "blocked_message": "Sorry, I can't help with that request."
+       }
+      },
+      {
+       "id": "analyst",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "SQL analyst",
+        "notes": "",
+        "role": "Answers questions by querying the database.",
+        "system_prompt": "Explore the schema first, then write one careful SQL query. Show the query you ran. Never guess column names.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "explain",
+       "position": {
+        "x": 750.0,
+        "y": 0.0
+       },
+       "type": "prompt",
+       "data": {
+        "label": "Explain simply",
+        "notes": "",
+        "instructions": "Rewrite the analyst's findings for a non-technical reader: the answer first, then two lines of context.",
+        "model": null,
+        "temperature": null
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 1000.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Reply",
+        "notes": ""
+       }
+      },
+      {
+       "id": "db",
+       "position": {
+        "x": 500.0,
+        "y": 300.0
+       },
+       "type": "sql_database",
+       "data": {
+        "label": "Warehouse",
+        "notes": "",
+        "dialect": "postgres",
+        "url_env": "SQL_TOOL_DATABASE_URL",
+        "read_only": true,
+        "max_rows": 50
+       }
+      },
+      {
+       "id": "calc",
+       "position": {
+        "x": 690.0,
+        "y": 300.0
+       },
+       "type": "calculator",
+       "data": {
+        "label": "Calculator",
+        "notes": ""
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-guard",
+       "source": "start",
+       "target": "guard",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-guard-pass-analyst",
+       "source": "guard",
+       "target": "analyst",
+       "sourceHandle": "pass",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-guard-blocked-reply",
+       "source": "guard",
+       "target": "reply",
+       "sourceHandle": "blocked",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-analyst-out-explain",
+       "source": "analyst",
+       "target": "explain",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-explain-out-reply",
+       "source": "explain",
+       "target": "reply",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "a-db-analyst",
+       "source": "db",
+       "target": "analyst",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-calc-analyst",
+       "source": "calc",
+       "target": "analyst",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  },
+  {
+   "id": "mcp-assistant",
+   "title": "MCP assistant",
+   "blurb": "MCP filesystem tools, web search and long-term memory.",
+   "tags": [
+    "mcp",
+    "memory"
+   ],
+   "level": "intermediate",
+   "file": "mcp-assistant.json",
+   "spec": {
+    "spec_version": "0.2",
+    "project": {
+     "name": "mcp-assistant",
+     "description": "A personal assistant with MCP tools and long-term memory of what you tell it."
+    },
+    "llm": {
+     "provider": "anthropic",
+     "model": "claude-opus-5-5",
+     "temperature": 0.2,
+     "effort": null,
+     "max_tokens": 4096
+    },
+    "backend": {
+     "language": "python"
+    },
+    "graph": {
+     "nodes": [
+      {
+       "id": "start",
+       "position": {
+        "x": 0.0,
+        "y": 0.0
+       },
+       "type": "input",
+       "data": {
+        "label": "Chat input",
+        "notes": "",
+        "greeting": "Hi! What can I help you with?"
+       }
+      },
+      {
+       "id": "assistant",
+       "position": {
+        "x": 250.0,
+        "y": 0.0
+       },
+       "type": "agent",
+       "data": {
+        "label": "Assistant",
+        "notes": "",
+        "role": "General assistant with file access and memory.",
+        "system_prompt": "You are a helpful assistant. Remember durable facts the user shares (preferences, names, projects) and recall them when relevant.",
+        "model": null,
+        "temperature": null,
+        "effort": null,
+        "max_steps": 8
+       }
+      },
+      {
+       "id": "reply",
+       "position": {
+        "x": 500.0,
+        "y": 0.0
+       },
+       "type": "output",
+       "data": {
+        "label": "Reply",
+        "notes": ""
+       }
+      },
+      {
+       "id": "files",
+       "position": {
+        "x": 250.0,
+        "y": 300.0
+       },
+       "type": "mcp_server",
+       "data": {
+        "label": "Filesystem (MCP)",
+        "notes": "",
+        "server_name": "filesystem",
+        "transport": "stdio",
+        "command": "npx",
+        "args": [
+         "-y",
+         "@modelcontextprotocol/server-filesystem",
+         "/data"
+        ],
+        "url": ""
+       }
+      },
+      {
+       "id": "search",
+       "position": {
+        "x": 440.0,
+        "y": 300.0
+       },
+       "type": "web_search",
+       "data": {
+        "label": "Web search",
+        "notes": "",
+        "provider": "tavily",
+        "max_results": 5
+       }
+      },
+      {
+       "id": "memory",
+       "position": {
+        "x": 630.0,
+        "y": 300.0
+       },
+       "type": "memory",
+       "data": {
+        "label": "Memory",
+        "notes": "",
+        "short_term": "sqlite",
+        "long_term": true
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e-start-out-assistant",
+       "source": "start",
+       "target": "assistant",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "e-assistant-out-reply",
+       "source": "assistant",
+       "target": "reply",
+       "sourceHandle": "out",
+       "targetHandle": "in"
+      },
+      {
+       "id": "a-files-assistant",
+       "source": "files",
+       "target": "assistant",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-search-assistant",
+       "source": "search",
+       "target": "assistant",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      },
+      {
+       "id": "a-memory-assistant",
+       "source": "memory",
+       "target": "assistant",
+       "sourceHandle": "attach",
+       "targetHandle": "tools"
+      }
+     ]
+    },
+    "ui": {
+     "framework": "nextjs",
+     "streaming": true,
+     "feedback": true,
+     "show_steps": true,
+     "title": ""
+    },
+    "deploy": {
+     "target": "docker_compose",
+     "backend_port": 8000,
+     "frontend_port": 3000
+    },
+    "observability": {
+     "langsmith": false
+    }
+   }
+  }
+ ]
+}
