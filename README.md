@@ -16,10 +16,10 @@ Needs Python 3.12+ and Node.js 20+.
 
 ```bash
 make setup     # engine venv + web dependencies
-make dev       # engine API on :8787, canvas on http://localhost:3000
+make dev       # engine API on :8787, canvas on http://localhost:3210
 ```
 
-Or with Docker: `docker compose up --build`, then open http://localhost:3000.
+Or with Docker: `docker compose up --build`, then open http://localhost:3210.
 
 Optional: set `ANTHROPIC_API_KEY` before `make dev` (or paste a key in **Settings** on the
 canvas) to turn on the Claude features. Everything else works without a key.

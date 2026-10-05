@@ -141,7 +141,7 @@ export function Gallery({ aiAvailable }: { aiAvailable: boolean }) {
                 }}
                 rows={2}
                 placeholder={EXAMPLES[0]}
-                className="mt-1 w-full resize-none bg-transparent px-1 text-[15px] leading-relaxed outline-none placeholder:text-faint"
+                className="mt-1 w-full resize-none bg-transparent px-1 text-[15px] leading-relaxed outline-none placeholder:text-faint focus-visible:outline-none"
               />
               <div className="flex flex-wrap items-center gap-2">
                 {EXAMPLES.slice(1).map((ex) => (
