@@ -1,0 +1,58 @@
+[project]
+name = "agent-configurator"
+version = "0.2.0"
+description = "Turn a visual agent graph into a complete, working agentic application."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+  "pydantic>=2.9,<3",
+  "jinja2>=3.1,<4",
+  "pyyaml>=6,<7",
+  "typer>=0.12,<1",
+  "rich>=13,<15",
+  "tomli-w>=1.0,<2",
+]
+
+[project.optional-dependencies]
+# The Claude API is only used for the fallback router, text-to-spec and prompt help.
+ai = ["anthropic>=0.69"]
+api = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "anthropic>=0.69"]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "httpx>=0.27", "types-PyYAML"]
+
+[project.scripts]
+configurator = "configurator_cli.main:app"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+  "packages/spec/configurator_spec",
+  "packages/engine/configurator_engine",
+  "packages/cli/configurator_cli",
+  "apps/api/configurator_api",
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+"modules" = "configurator_engine/_modules"
+"examples/specs" = "configurator_engine/_examples"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["modules", "examples/exports"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+packages = ["configurator_spec", "configurator_engine", "configurator_cli", "configurator_api"]
