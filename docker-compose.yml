@@ -8,7 +8,7 @@ services:
       # Optional: lets the canvas use Claude without each user pasting a key.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       CONFIGURATOR_DAILY_COST_CAP_USD: ${CONFIGURATOR_DAILY_COST_CAP_USD:-10}
-      CONFIGURATOR_CORS: http://localhost:3000
+      CONFIGURATOR_CORS: http://localhost:3210
     ports: ["8787:8787"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8787/api/health')"]
@@ -19,7 +19,7 @@ services:
     build: ./apps/web
     environment:
       CONFIGURATOR_API_URL: http://api:8787
-    ports: ["3000:3000"]
+    ports: ["3210:3210"]
     depends_on:
       api:
         condition: service_healthy

@@ -14,12 +14,12 @@ setup: ## Install the engine (Python venv) and the web app (npm)
 	$(BIN)/pip install -q --upgrade pip
 	$(BIN)/pip install -q -e ".[api,dev]"
 	cd apps/web && npm install --no-audit --no-fund
-	@echo "\nReady. Run: make dev   (then open http://localhost:3000)"
+	@echo "\nReady. Run: make dev   (then open http://localhost:3210)"
 
 api: ## Run the engine API on :8787 (auto-reload)
 	$(BIN)/uvicorn configurator_api.main:app --port 8787 --reload --reload-dir packages --reload-dir apps/api --reload-dir modules
 
-web: ## Run the canvas on :3000
+web: ## Run the canvas on :3210
 	cd apps/web && npm run dev
 
 dev: ## Run engine + canvas together (Ctrl+C stops both)

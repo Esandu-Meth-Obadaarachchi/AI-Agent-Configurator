@@ -41,7 +41,7 @@ DAILY_COST_CAP = float(os.environ.get("CONFIGURATOR_DAILY_COST_CAP_USD", "10"))
 app = FastAPI(title="Agent Configurator API", version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CONFIGURATOR_CORS", "http://localhost:3000,http://127.0.0.1:3000").split(","),
+    allow_origins=os.environ.get("CONFIGURATOR_CORS", "http://localhost:3210,http://127.0.0.1:3210").split(","),
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"],
