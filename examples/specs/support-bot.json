@@ -213,7 +213,7 @@
           "chunker": "recursive",
           "chunk_size": 800,
           "overlap": 100,
-          "embedding": "openai_small",
+          "embedding": "local_bge_small",
           "vector_store": "pgvector",
           "retrieval": "hybrid",
           "top_k": 6,

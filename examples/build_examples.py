@@ -66,7 +66,7 @@ def docs_qa() -> dict[str, Any]:
     )
     b.node("reply", "output", COL * 2, label="Reply")
     b.node("docs", "knowledge", COL - 140, RES_Y, label="Company docs", description="Company policies, handbooks and product docs",
-           vector_store="pgvector", retrieval="hybrid", embedding="openai_small", top_k=6)
+           vector_store="pgvector", retrieval="hybrid", embedding="local_bge_small", top_k=6)
     b.node("memory", "memory", COL + 140, RES_Y, label="Memory", short_term="postgres")
     b.flow("start", "assistant")
     b.flow("assistant", "reply")
@@ -124,7 +124,7 @@ def support_bot() -> dict[str, Any]:
     b.node("reply", "output", COL * 5, FLOW_Y, label="Reply")
     b.node("orders", "http_api", COL * 3 - 160, RES_Y + 120, label="Orders API", tool_name="get_order", description="Look up an order by its id: status, amount and refund eligibility.",
            method="GET", base_url="https://api.example.com", path="/orders/{order_id}", params=[{"name": "order_id", "location": "path", "description": "The order id, e.g. ORD-1234"}])
-    b.node("helpdocs", "knowledge", COL * 3 + 60, RES_Y + 120, label="Help centre", description="Product help-centre articles", vector_store="pgvector", retrieval="hybrid")
+    b.node("helpdocs", "knowledge", COL * 3 + 60, RES_Y + 120, label="Help centre", description="Product help-centre articles", vector_store="pgvector", retrieval="hybrid", embedding="local_bge_small")
     b.node("memory", "memory", COL * 4 + 200, RES_Y + 120, label="Memory", short_term="postgres")
     b.flow("start", "guard")
     b.flow("guard", "triage", "pass")
