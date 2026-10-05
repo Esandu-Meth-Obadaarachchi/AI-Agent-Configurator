@@ -8,6 +8,7 @@ the same module set always produces the same bytes.
 from __future__ import annotations
 
 import json
+import os
 import re
 from typing import Any
 
@@ -20,6 +21,8 @@ _NAME = re.compile(r"^([A-Za-z0-9_.\-]+)(\[[^\]]+\])?$")
 
 
 def _pin(dep: str, versions: dict[str, str]) -> str:
+    if os.environ.get("CONFIGURATOR_UNPINNED") == "1":
+        return dep  # nightly job: render against the latest releases
     m = _NAME.match(dep.strip())
     if not m:
         return dep  # already has a specifier

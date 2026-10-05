@@ -1,0 +1,30 @@
+# The supported matrix (section 11): every combination here is rendered and its own
+# ruff, mypy and tests must pass in CI. Keep it small; add a row when you add a module.
+combinations:
+  - name: single-agent
+    spec: examples/specs/blank.json
+  - name: rag-chroma-local-rerank
+    spec: examples/specs/rag-starter.json
+  - name: docs-qa-pgvector-hybrid
+    spec: examples/specs/docs-qa.json
+  - name: support-router-approval-http
+    spec: examples/specs/support-bot.json
+    frontend: true
+  - name: research-supervisor-critic
+    spec: examples/specs/research-team.json
+  - name: content-loop-approval
+    spec: examples/specs/content-studio.json
+  - name: sql-guardrail
+    spec: examples/specs/data-analyst.json
+  - name: mcp-sqlite-long-term
+    spec: examples/specs/mcp-assistant.json
+  - name: openai-provider
+    spec: examples/specs/docs-qa.json
+    set:
+      llm.provider: openai
+      llm.model: gpt-5-mini
+  - name: api-only
+    spec: examples/specs/research-team.json
+    set:
+      ui.framework: none
+      deploy.target: none

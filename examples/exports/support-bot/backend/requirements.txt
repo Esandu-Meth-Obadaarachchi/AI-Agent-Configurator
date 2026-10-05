@@ -1,0 +1,19 @@
+# Pinned by Agent Configurator. Regenerate rather than editing by hand.
+beautifulsoup4==4.15.0
+fastapi==0.142.2
+fastembed==0.8.1
+httpx==0.28.1
+langchain-anthropic==1.7.5
+langchain-core==1.6.6
+langchain==1.4.3
+langgraph-checkpoint-postgres==3.1.2
+langgraph==1.2.13
+numpy==2.5.3
+psycopg-pool==3.3.3
+psycopg[binary]==3.3.6
+pydantic-settings==2.15.0
+pydantic==2.13.5
+pypdf==6.19.0
+python-multipart==0.0.32
+rank-bm25==0.2.2
+uvicorn[standard]==0.54.0
