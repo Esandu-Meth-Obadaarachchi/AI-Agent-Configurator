@@ -1,4 +1,6 @@
 # support-bot: common tasks. Run `make help` to list them.
+# Prefer the Python versions this project is tested on; fall back to python3.
+PY ?= $(shell command -v python3.12 || command -v python3.13 || command -v python3)
 .PHONY: help setup dev api ui test lint up down db ingest
 
 help:
@@ -6,7 +8,7 @@ help:
 
 setup: ## Install backend and frontend dependencies and create .env
 	test -f .env || cp .env.example .env
-	cd backend && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+	cd backend && $(PY) -m venv .venv && .venv/bin/pip install -e ".[dev]"
 	cd frontend && npm install
 
 db: ## Start only Postgres (for local development)
