@@ -48,6 +48,7 @@ node:
   "@types/react-dom": "19.3.0"
   tailwindcss: "4.3.3"
   "@tailwindcss/postcss": "4.3.3"
+  # ESLint 10 breaks eslint-plugin-react (used by eslint-config-next 16); stay on 9.x until it catches up.
   eslint: "9.39.5"
   eslint-config-next: "16.3.8"
 
