@@ -1,0 +1,20 @@
+name: nightly
+
+# Renders the matrix against the latest LangGraph, LangChain, FastAPI and MCP releases
+# (no pins) so template rot shows up here before it reaches users.
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[api,dev]"
+      - run: python scripts/verify_matrix.py
+        env:
+          CONFIGURATOR_UNPINNED: "1"

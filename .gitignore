@@ -24,6 +24,7 @@ next-env.d.ts
 
 # Generated exports and scratch
 /exports/
+# examples/exports is committed on purpose: the three reference exports.
 /tmp/
 *.zip
 .DS_Store

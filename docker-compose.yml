@@ -1,0 +1,25 @@
+# Run the configurator (engine API + canvas) with one command: docker compose up --build
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      # Optional: lets the canvas use Claude without each user pasting a key.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CONFIGURATOR_DAILY_COST_CAP_USD: ${CONFIGURATOR_DAILY_COST_CAP_USD:-10}
+      CONFIGURATOR_CORS: http://localhost:3000
+    ports: ["8787:8787"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8787/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+  web:
+    build: ./apps/web
+    environment:
+      CONFIGURATOR_API_URL: http://api:8787
+    ports: ["3000:3000"]
+    depends_on:
+      api:
+        condition: service_healthy

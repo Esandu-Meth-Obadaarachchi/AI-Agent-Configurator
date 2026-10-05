@@ -1,0 +1,11 @@
+# Pinned by Agent Configurator. Regenerate rather than editing by hand.
+beautifulsoup4==4.15.0
+fastapi==0.142.2
+httpx==0.28.1
+langchain-anthropic==1.7.5
+langchain-core==1.6.6
+langchain==1.4.3
+langgraph==1.2.13
+pydantic-settings==2.15.0
+pydantic==2.13.5
+uvicorn[standard]==0.54.0
