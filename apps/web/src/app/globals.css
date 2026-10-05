@@ -328,3 +328,22 @@ body {
 .react-flow__node:focus-visible > div {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent), var(--shadow-md);
 }
+
+/* Our block types are called "input" and "output", which share class names with
+   React Flow's built-in node styles. Neutralise those so every block looks the same. */
+.react-flow__node-input,
+.react-flow__node-output,
+.react-flow__node-input.selected,
+.react-flow__node-output.selected,
+.react-flow__node-input:hover,
+.react-flow__node-output:hover {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  width: auto;
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+  font-size: inherit;
+}
