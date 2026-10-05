@@ -1,0 +1,31 @@
+id: memory.postgres
+title: Postgres conversation memory
+python_deps: [langgraph-checkpoint-postgres, "psycopg[binary]", psycopg-pool]
+env:
+  - name: CHECKPOINTER
+    value: postgres
+    comment: "Conversation state store: memory | sqlite | postgres"
+  - name: DATABASE_URL
+    value: postgresql://app:app@localhost:5432/app
+    comment: Postgres connection string. Docker Compose sets this for you.
+compose:
+  services:
+    postgres:
+      image: pgvector/pgvector:pg17
+      environment:
+        POSTGRES_USER: app
+        POSTGRES_PASSWORD: app
+        POSTGRES_DB: app
+      ports: ["5432:5432"]
+      volumes: ["pgdata:/var/lib/postgresql/data"]
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U app -d app"]
+        interval: 5s
+        timeout: 5s
+        retries: 10
+    backend:
+      depends_on:
+        postgres:
+          condition: service_healthy
+  volumes:
+    pgdata: {}

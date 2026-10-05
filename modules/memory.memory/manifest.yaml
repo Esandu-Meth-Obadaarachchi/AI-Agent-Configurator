@@ -1,0 +1,6 @@
+id: memory.memory
+title: In-memory conversation state
+env:
+  - name: CHECKPOINTER
+    value: memory
+    comment: "Conversation state store: memory | sqlite | postgres"

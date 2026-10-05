@@ -1,0 +1,9 @@
+id: memory.sqlite
+title: SQLite conversation memory
+python_deps: [langgraph-checkpoint-sqlite, aiosqlite]
+env:
+  - name: CHECKPOINTER
+    value: sqlite
+    comment: "Conversation state store: memory | sqlite | postgres"
+  - name: SQLITE_PATH
+    value: data/checkpoints.sqlite

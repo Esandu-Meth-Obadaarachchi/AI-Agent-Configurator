@@ -1,0 +1,27 @@
+id: core
+title: Core backend (FastAPI + LangGraph)
+tree: true
+python_deps:
+  - fastapi
+  - uvicorn[standard]
+  - pydantic
+  - pydantic-settings
+  - httpx
+  - langgraph
+  - langchain
+  - langchain-core
+dev_deps:
+  - pytest
+  - pytest-asyncio
+  - ruff
+  - mypy
+env:
+  - name: LLM_PROVIDER
+    value: "{{ llm.provider }}"
+    comment: "anthropic | openai | fake (fake = offline demo mode, no API calls)"
+  - name: LLM_MODEL
+    value: "{{ llm.model }}"
+    comment: Default model for every step that doesn't name its own.
+  - name: CORS_ORIGINS
+    value: '["http://localhost:{{ deploy.frontend_port }}"]'
+    comment: Browser origins allowed to call the API.

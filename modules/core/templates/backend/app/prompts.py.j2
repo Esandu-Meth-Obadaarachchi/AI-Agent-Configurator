@@ -1,0 +1,20 @@
+"""Instructions for every step, as written on the canvas.
+
+Generated from spec.json. To change a prompt without touching generated code, add
+it to OVERRIDES in app/custom/prompts.py; that file survives regeneration.
+"""
+
+from __future__ import annotations
+
+from app.custom.prompts import OVERRIDES
+
+PROMPTS: dict[str, str] = {
+{% for n in nodes %}
+{% set text = n.data.get("system_prompt") or n.data.get("instructions") or n.data.get("criteria") or n.data.get("prompt") or n.data.get("description") or "" %}
+    {{ n.id | pystr }}: {{ text | pytext(4) }},
+{% endfor %}
+}
+
+
+def prompt_for(node_id: str) -> str:
+    return OVERRIDES.get(node_id) or PROMPTS.get(node_id, "")

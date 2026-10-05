@@ -1,0 +1,3 @@
+id: reranker.cross_encoder
+title: Local cross-encoder reranker
+python_deps: [fastembed]

@@ -1,0 +1,10 @@
+id: tool.http_api
+title: HTTP API tool
+python_deps: [httpx]
+files:
+  - src: templates/http_tool.py.j2
+    dest: "backend/app/tools/http_{{ item.id }}.py"
+    foreach: http_tools
+env:
+  - name: "{% for r in http_tools if r.data.auth_env %}{{ r.data.auth_env }}{% if not loop.last %},{% endif %}{% endfor %}"
+    comment: Token for your HTTP API tool (leave empty if the API is public).

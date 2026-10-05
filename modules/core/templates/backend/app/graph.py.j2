@@ -1,0 +1,201 @@
+{% set simple = ["agent", "prompt", "retriever", "custom_step"] %}
+{% set used = graph_nodes | map(attribute="type") | list %}
+"""The agent loop for {{ project.name }}, as a LangGraph state graph.
+
+Generated from spec.json by Agent Configurator. Change the loop on the canvas (or in
+spec.json) and regenerate. Your own code belongs in app/custom/, which regeneration
+never overwrites.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from langgraph.graph import END, START, StateGraph
+
+{% if "custom_step" in used %}
+from app.custom import nodes as custom_nodes
+{% endif %}
+{% if graph_nodes | rejectattr('type', 'in', simple) | list %}
+from app.nodes import route
+{% endif %}
+{% if "agent" in used %}
+from app.nodes.agent import make_agent_node
+{% endif %}
+{% if "approval" in used %}
+from app.nodes.approval import make_approval_node
+{% endif %}
+{% if "critic" in used %}
+from app.nodes.critic import make_critic_node
+{% endif %}
+{% if "custom_step" in used %}
+from app.nodes.custom_step import make_custom_step_node
+{% endif %}
+{% if "guardrail" in used %}
+from app.nodes.guardrail import make_guardrail_node
+{% endif %}
+{% if "prompt" in used %}
+from app.nodes.prompt_step import make_prompt_node
+{% endif %}
+{% if "retriever" in used %}
+from app.nodes.retriever import make_retriever_node
+{% endif %}
+{% if "router" in used %}
+from app.nodes.router import make_router_node
+{% endif %}
+{% if "supervisor" in used %}
+from app.nodes.supervisor import make_supervisor_node
+{% endif %}
+from app.prompts import prompt_for
+from app.state import AppState
+from app.tools import Toolsets
+
+
+def build_graph(toolsets: Toolsets, checkpointer: Any = None, store: Any = None) -> Any:
+    graph = StateGraph(AppState)
+{% for n in graph_nodes %}
+
+    # {{ n.label }}{% if n.data.get("role") %}: {{ n.data.role }}{% endif %}
+
+{% if n.type == "agent" %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_agent_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            system_prompt=prompt_for({{ n.id | pystr }}),
+            tools=[{% for t in n.tools + n.knowledge %}*toolsets[{{ t | pystr }}]{% if not loop.last %}, {% endif %}{% endfor %}{% if n.long_term_memory %}{% if n.tools or n.knowledge %}, {% endif %}*toolsets["memory"]{% endif %}],
+            model={{ n.data.model | py }},
+            temperature={{ n.data.temperature | py }},
+            effort={{ n.data.effort | py }},
+            max_steps={{ n.data.max_steps }},
+        ),
+    )
+{% elif n.type == "supervisor" %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_supervisor_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            instructions=prompt_for({{ n.id | pystr }}),
+            workers=[
+{% for w in n.workers %}
+                {"id": {{ w | pystr }}, "label": {{ g.nodes[w].label | pystr }}, "role": {{ (g.nodes[w].data.get("role") or g.nodes[w].label) | pystr }}},
+{% endfor %}
+            ],
+            model={{ n.data.model | py }},
+            max_rounds={{ n.data.max_rounds }},
+        ),
+    )
+{% elif n.type == "prompt" %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_prompt_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            instructions=prompt_for({{ n.id | pystr }}),
+            model={{ n.data.model | py }},
+            temperature={{ n.data.temperature | py }},
+        ),
+    )
+{% elif n.type == "router" %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_router_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            mode={{ n.data.mode | pystr }},
+            instructions=prompt_for({{ n.id | pystr }}),
+            routes=[
+{% for r in n.data.routes %}
+                {"id": {{ r.id | pystr }}, "label": {{ (r.label or r.id) | pystr }}, "description": {{ r.description | pystr }}, "keywords": {{ r.keywords | py }}},
+{% endfor %}
+            ],
+            model={{ n.data.model | py }},
+        ),
+    )
+{% elif n.type == "critic" %}
+{% set revise = n.branches | selectattr("handle", "equalto", "revise") | first %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_critic_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            criteria=prompt_for({{ n.id | pystr }}),
+            max_iterations={{ n.data.max_iterations }},
+            model={{ n.data.model | py }},
+            can_revise={{ (revise.targets | length > 0) | py }},
+        ),
+    )
+{% elif n.type == "approval" %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_approval_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            prompt=prompt_for({{ n.id | pystr }}),
+            allow_edit={{ n.data.allow_edit | py }},
+            reject_ends={{ reject_ends(n) | py }},
+        ),
+    )
+{% elif n.type == "guardrail" %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_guardrail_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            redact_pii={{ n.data.redact_pii | py }},
+            block_prompt_injection={{ n.data.block_prompt_injection | py }},
+            max_input_chars={{ n.data.max_input_chars }},
+            blocked_terms={{ n.data.blocked_terms | py }},
+            blocked_message={{ n.data.blocked_message | pystr }},
+        ),
+    )
+{% elif n.type == "retriever" %}
+    graph.add_node(
+        {{ n.id | pystr }},
+        make_retriever_node(
+            node_id={{ n.id | pystr }},
+            label={{ n.label | pystr }},
+            knowledge={{ n.knowledge | py }},
+            top_k={{ n.data.top_k | py }},
+        ),
+    )
+{% elif n.type == "custom_step" %}
+    graph.add_node({{ n.id | pystr }}, make_custom_step_node(node_id={{ n.id | pystr }}, label={{ n.label | pystr }}, fn=custom_nodes.{{ n.id }}))
+{% endif %}
+{% endfor %}
+
+    # ---- How the steps connect
+{% for t in g.entry %}
+    graph.add_edge(START, {{ target(t) }})
+{% endfor %}
+{% for n in graph_nodes %}
+{% if n.supervisor %}
+    graph.add_edge({{ n.id | pystr }}, {{ n.supervisor | pystr }})  # reports back to {{ g.nodes[n.supervisor].label }}
+{% elif n.type in simple %}
+{% if n.out %}
+{% for t in n.out %}
+    graph.add_edge({{ n.id | pystr }}, {{ target(t) }})
+{% endfor %}
+{% else %}
+    graph.add_edge({{ n.id | pystr }}, END)
+{% endif %}
+{% else %}
+{% set mapping = branch_map(n) %}
+    graph.add_conditional_edges(
+        {{ n.id | pystr }},
+        route(
+            {{ n.id | pystr }},
+            {
+{% for key, targets in mapping.items() %}
+                {{ key | pystr }}: [{{ targets | join(", ") }}],
+{% endfor %}
+            },
+        ),
+        [{{ branch_destinations(n) | join(", ") }}],
+    )
+{% endif %}
+{% endfor %}
+
+    return graph.compile(checkpointer=checkpointer, store=store)

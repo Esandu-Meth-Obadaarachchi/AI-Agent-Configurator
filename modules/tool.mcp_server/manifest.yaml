@@ -1,0 +1,8 @@
+id: tool.mcp_server
+title: MCP client
+tree: true
+python_deps: [langchain-mcp-adapters]
+env:
+  - name: SKIP_MCP
+    value: "false"
+    comment: Set to true to start without connecting to MCP servers.

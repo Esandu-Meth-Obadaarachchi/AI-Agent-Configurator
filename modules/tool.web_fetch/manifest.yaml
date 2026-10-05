@@ -1,0 +1,4 @@
+id: tool.web_fetch
+title: Read web page
+tree: true
+python_deps: [httpx, beautifulsoup4]

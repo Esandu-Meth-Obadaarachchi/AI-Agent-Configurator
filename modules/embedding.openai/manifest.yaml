@@ -1,0 +1,6 @@
+id: embedding.openai
+title: OpenAI embeddings
+python_deps: [openai]
+env:
+  - name: OPENAI_API_KEY
+    comment: Used for embeddings (text-embedding-3).

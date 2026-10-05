@@ -1,0 +1,8 @@
+id: tool.sql_database
+title: SQL database tools
+tree: true
+python_deps: [sqlalchemy, "psycopg[binary]", pymysql]
+env:
+  - name: "{% for r in sql_tools %}{{ r.data.url_env }}{% if not loop.last %},{% endif %}{% endfor %}"
+    value: "{% set r = sql_tools[0] %}{% if r.data.dialect == 'postgres' %}postgresql+psycopg://user:password@host:5432/dbname{% elif r.data.dialect == 'mysql' %}mysql+pymysql://user:password@host:3306/dbname{% else %}sqlite:///data/example.db{% endif %}"
+    comment: Connection string for the database the SQL tools query. Use a read-only user.

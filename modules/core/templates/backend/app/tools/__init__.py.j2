@@ -1,0 +1,86 @@
+"""Tool sets, keyed by the id of the block that provides them on the canvas.
+
+An agent's tools are the union of the tool sets attached to it (see app/graph.py).
+"""
+
+from __future__ import annotations
+
+import logging
+
+from langchain_core.tools import BaseTool
+
+{% if mcp_servers %}
+from app.config import get_settings
+
+{% endif %}
+log = logging.getLogger(__name__)
+
+Toolsets = dict[str, list[BaseTool]]
+
+
+async def build_toolsets() -> Toolsets:
+{% if mcp_servers %}
+    settings = get_settings()
+{% endif %}
+    sets: Toolsets = {}
+{% for r in tools %}
+
+    # {{ r.label }}
+{% if r.type == "web_search" %}
+    from app.tools.web_search import make_web_search_tools
+
+    sets[{{ r.id | pystr }}] = make_web_search_tools(max_results={{ r.data.max_results }})
+{% elif r.type == "web_fetch" %}
+    from app.tools.web_fetch import make_web_fetch_tools
+
+    sets[{{ r.id | pystr }}] = make_web_fetch_tools(max_chars={{ r.data.max_chars }})
+{% elif r.type == "http_api" %}
+    from app.tools.http_{{ r.id }} import {{ r.data.tool_name }}
+
+    sets[{{ r.id | pystr }}] = [{{ r.data.tool_name }}]
+{% elif r.type == "calculator" %}
+    from app.tools.calculator import calculator
+
+    sets[{{ r.id | pystr }}] = [calculator]
+{% elif r.type == "sql_database" %}
+    from app.tools.sql import make_sql_tools
+
+    sets[{{ r.id | pystr }}] = make_sql_tools(
+        url_env={{ r.data.url_env | pystr }}, read_only={{ r.data.read_only | py }}, max_rows={{ r.data.max_rows }}
+    )
+{% elif r.type == "mcp_server" %}
+    from app.tools.mcp import load_mcp_tools
+
+    if settings.skip_mcp:
+        sets[{{ r.id | pystr }}] = []
+    else:
+        sets[{{ r.id | pystr }}] = await load_mcp_tools(
+            {{ r.data.server_name | pystr }},
+{% if r.data.transport == "stdio" %}
+            {"transport": "stdio", "command": {{ r.data.command | pystr }}, "args": {{ r.data.args | py }}},
+{% else %}
+            {"transport": {{ r.data.transport | pystr }}, "url": {{ r.data.url | pystr }}},
+{% endif %}
+        )
+{% elif r.type == "custom_tool" %}
+    from app.custom.tools import {{ r.data.tool_name }}
+
+    sets[{{ r.id | pystr }}] = [{{ r.data.tool_name }}]
+{% endif %}
+{% endfor %}
+{% for k in attached_knowledge %}
+
+    # {{ k.label }} (knowledge base, as a search tool)
+    from app.tools.knowledge import make_knowledge_tool
+
+    sets[{{ k.id | pystr }}] = [make_knowledge_tool({{ k.id | pystr }})]
+{% endfor %}
+{% if long_term %}
+
+    # Long-term memory: remember and recall tools
+    from app.tools.memory_tools import make_memory_tools
+
+    sets["memory"] = make_memory_tools()
+{% endif %}
+    log.info("tool sets ready: %s", {name: [t.name for t in tools] for name, tools in sets.items()})
+    return sets

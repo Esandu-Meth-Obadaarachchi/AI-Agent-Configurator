@@ -1,0 +1,4 @@
+id: rag.core
+title: Knowledge base (RAG)
+tree: true
+python_deps: [pypdf, beautifulsoup4, numpy, python-multipart]

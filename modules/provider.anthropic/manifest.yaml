@@ -1,0 +1,9 @@
+id: provider.anthropic
+title: Anthropic (Claude)
+python_deps: [langchain-anthropic]
+env:
+  - name: ANTHROPIC_API_KEY
+    comment: "Your Claude API key, from https://platform.claude.com"
+  - name: ANTHROPIC_REFUSAL_FALLBACK
+    value: default
+    comment: "default = if a Claude safety classifier declines, retry on a fallback model in the same call; off = disable"
