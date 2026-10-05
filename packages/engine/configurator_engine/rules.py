@@ -95,9 +95,9 @@ def resolve(spec: Spec) -> Resolution:
         add(Issue("error", "graph.input_unconnected", "Connect the Chat input to the first step.", inputs[0].id))
     if not any(n.type == "output" for n in nodes):
         add(Issue("info", "graph.no_output", "No Reply block: the run ends wherever a branch stops. Adding one makes the end explicit."))
-    memories = [n for n in nodes if n.type == "memory"]
-    for n in memories[1:]:
-        add(Issue("error", "graph.multiple_memory", "Only one Memory block is allowed per project.", n.id))
+    memories = [m for m in nodes if m.type == "memory"]
+    for extra in memories[1:]:
+        add(Issue("error", "graph.multiple_memory", "Only one Memory block is allowed per project.", extra.id))
     if not any(n.type in {"agent", "supervisor", "prompt"} for n in nodes):
         add(Issue("warning", "graph.no_model", "Nothing here calls a model yet. Add an Agent or an LLM step."))
 
@@ -231,5 +231,4 @@ def _modules(spec: Spec, cg: CompiledGraph) -> list[str]:
         mods.append("deploy.docker_compose")
     if spec.observability.langsmith:
         mods.append("observability.langsmith")
-    seen: set[str] = set()
-    return [m for m in mods if not (m in seen or seen.add(m))]
+    return list(dict.fromkeys(mods))

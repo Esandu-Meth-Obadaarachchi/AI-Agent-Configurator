@@ -176,15 +176,13 @@ def compile_graph(spec: Spec) -> CompiledGraph:
             continue
         data = _dump(n.data)
         res = Resource(id=n.id, type=n.type, label=data.get("label") or n.id, data=data)
-        for target, handle in sorted(attach.get(n.id, [])):
+        for target, _handle in sorted(attach.get(n.id, [])):
             if target not in flow:
                 continue
             fnode = flow[target]
             if n.type in TOOL_TYPES and fnode.type == "agent":
                 fnode.tools.append(n.id)
-            elif n.type == "knowledge" and fnode.type == "agent":
-                fnode.knowledge.append(n.id)
-            elif n.type == "knowledge" and fnode.type == "retriever":
+            elif n.type == "knowledge" and fnode.type == "agent" or n.type == "knowledge" and fnode.type == "retriever":
                 fnode.knowledge.append(n.id)
             elif n.type == "memory" and fnode.type == "agent":
                 fnode.long_term_memory = bool(n.data.long_term)  # type: ignore[union-attr]

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import pytest
-from conftest import build, example_ids
 
 from configurator_engine.compiler import compile_graph, find_cycles, simulate
 from configurator_engine.rules import resolve
+from conftest import build, example_ids
 
 
 def codes(spec):  # type: ignore[no-untyped-def]
