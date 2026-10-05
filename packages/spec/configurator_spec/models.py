@@ -11,11 +11,11 @@ project (LLM defaults, UI, deployment) stay outside the graph.
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-SPEC_VERSION = "0.2"
+SPEC_VERSION: Final = "0.2"
 
 # Node ids become Python identifiers and file names in the export, so keep them tight.
 NODE_ID = r"^[a-z][a-z0-9_]{0,39}$"
@@ -179,9 +179,12 @@ class CustomStepData(_Data):
     generated_by: Literal["claude", "user"] | None = None
 
 
+SourceKind = Literal["pdf", "markdown", "text", "html"]
+
+
 class KnowledgeData(_Data):
     description: str = Field(default="Company documents", max_length=300)
-    sources: list[Literal["pdf", "markdown", "text", "html"]] = Field(default_factory=lambda: ["pdf", "markdown"])
+    sources: list[SourceKind] = Field(default_factory=lambda: list[SourceKind](["pdf", "markdown"]))
     chunker: Literal["recursive", "fixed"] = "recursive"
     chunk_size: int = Field(default=800, ge=100, le=8000)
     overlap: int = Field(default=100, ge=0, le=2000)

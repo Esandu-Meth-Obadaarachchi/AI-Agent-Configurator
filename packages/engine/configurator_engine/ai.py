@@ -21,6 +21,7 @@ refusal fallbacks on by default (CONFIGURATOR_REFUSAL_FALLBACK=off disables them
 from __future__ import annotations
 
 import ast
+import contextvars
 import json
 import logging
 import os
@@ -79,8 +80,16 @@ class Usage:
 USAGE = Usage()
 
 
+# A key supplied per request (hosted mode, "bring your own key"). Never stored.
+_request_key: contextvars.ContextVar[str | None] = contextvars.ContextVar("anthropic_key", default=None)
+
+
+def use_key(key: str | None) -> contextvars.Token[str | None]:
+    return _request_key.set(key or None)
+
+
 def available() -> bool:
-    return bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
+    return bool(_request_key.get() or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
 
 
 def model_name() -> str:
@@ -92,7 +101,8 @@ def _client() -> Any:
         raise AIUnavailable("Set ANTHROPIC_API_KEY to use Claude features.")
     import anthropic
 
-    return anthropic.Anthropic()
+    key = _request_key.get()
+    return anthropic.Anthropic(api_key=key) if key else anthropic.Anthropic()
 
 
 def _call_structured(system: str, user: str, schema: type[BaseModel], effort: str = "medium", max_tokens: int = 16000) -> Any:
@@ -261,9 +271,9 @@ def _draft_to_spec(draft: Draft) -> Spec:
         types[n.id] = n.type
         types[nid] = n.type
         nodes.append({"id": nid, "type": n.type, "data": data, "_orig": n.id})
-    remap = {n["_orig"]: n["id"] for n in nodes}
-    for n in nodes:
-        n.pop("_orig")
+    remap = {nd["_orig"]: nd["id"] for nd in nodes}
+    for nd in nodes:
+        nd.pop("_orig")
     resource_types = {"knowledge", "memory", "web_search", "web_fetch", "http_api", "mcp_server", "calculator", "sql_database", "custom_tool"}
     edges = []
     for i, e in enumerate(draft.edges):
@@ -376,9 +386,12 @@ def static_check(code: str, name: str, *, is_tool: bool) -> list[str]:
             fn = node.func
             if isinstance(fn, ast.Name) and fn.id in {"eval", "exec", "compile", "__import__"}:
                 problems.append(f"Don't call {fn.id}().")
-            if isinstance(fn, ast.Attribute) and isinstance(fn.value, ast.Name):
-                if (fn.value.id, fn.attr) in FORBIDDEN or (fn.value.id, "*") in FORBIDDEN:
-                    problems.append(f"Don't call {fn.value.id}.{fn.attr}().")
+            if (
+                isinstance(fn, ast.Attribute)
+                and isinstance(fn.value, ast.Name)
+                and ((fn.value.id, fn.attr) in FORBIDDEN or (fn.value.id, "*") in FORBIDDEN)
+            ):
+                problems.append(f"Don't call {fn.value.id}.{fn.attr}().")
         if isinstance(node, ast.Import | ast.ImportFrom):
             mod = node.module if isinstance(node, ast.ImportFrom) else node.names[0].name
             if (mod or "").split(".")[0] in {"subprocess", "ctypes", "pickle"}:

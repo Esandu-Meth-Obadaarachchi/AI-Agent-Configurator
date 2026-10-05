@@ -55,4 +55,7 @@ ignore = ["E501"]
 [tool.mypy]
 python_version = "3.12"
 ignore_missing_imports = true
-packages = ["configurator_spec", "configurator_engine", "configurator_cli", "configurator_api"]
+files = ["packages/spec/configurator_spec", "packages/engine/configurator_engine", "packages/cli/configurator_cli", "apps/api/configurator_api"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["configurator_spec", "configurator_engine", "configurator_cli", "configurator_api", "conftest"]

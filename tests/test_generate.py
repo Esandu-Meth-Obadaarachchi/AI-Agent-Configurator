@@ -8,10 +8,10 @@ import zipfile
 from pathlib import Path
 
 import pytest
-from conftest import ROOT, build, example_ids
 
 from configurator_engine.codeparts import split_imports
 from configurator_engine.generate import GenerationError, generate, to_zip, write
+from conftest import ROOT, build, example_ids
 
 GOLDEN = ROOT / "tests" / "golden"
 
