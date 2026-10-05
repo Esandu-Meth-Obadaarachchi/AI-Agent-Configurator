@@ -11,10 +11,10 @@ from typing import Any
 
 from configurator_spec import FLOW_TYPES
 
-COL = 300
-ROW = 190
-RES_GAP = 210
-RES_DROP = 260
+COL = 250
+ROW = 185
+RES_GAP = 190
+RES_DROP = 300
 
 
 def auto_layout(nodes: list[dict[str, Any]], edges: list[dict[str, Any]]) -> None:

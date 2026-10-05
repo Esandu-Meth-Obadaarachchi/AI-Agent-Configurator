@@ -20,7 +20,7 @@
         "id": "start",
         "position": {
           "x": 0.0,
-          "y": 160.0
+          "y": 0.0
         },
         "type": "input",
         "data": {
@@ -32,8 +32,8 @@
       {
         "id": "guard",
         "position": {
-          "x": 300.0,
-          "y": 160.0
+          "x": 250.0,
+          "y": 0.0
         },
         "type": "guardrail",
         "data": {
@@ -49,8 +49,8 @@
       {
         "id": "triage",
         "position": {
-          "x": 600.0,
-          "y": 160.0
+          "x": 500.0,
+          "y": 0.0
         },
         "type": "router",
         "data": {
@@ -95,8 +95,8 @@
       {
         "id": "billing",
         "position": {
-          "x": 900.0,
-          "y": -10.0
+          "x": 750.0,
+          "y": -185.0
         },
         "type": "agent",
         "data": {
@@ -113,8 +113,8 @@
       {
         "id": "tech",
         "position": {
-          "x": 900.0,
-          "y": 200.0
+          "x": 750.0,
+          "y": 0.0
         },
         "type": "agent",
         "data": {
@@ -131,8 +131,8 @@
       {
         "id": "smalltalk",
         "position": {
-          "x": 900.0,
-          "y": 410.0
+          "x": 750.0,
+          "y": 185.0
         },
         "type": "prompt",
         "data": {
@@ -146,8 +146,8 @@
       {
         "id": "approve",
         "position": {
-          "x": 1200.0,
-          "y": -10.0
+          "x": 1000.0,
+          "y": 0.0
         },
         "type": "approval",
         "data": {
@@ -160,8 +160,8 @@
       {
         "id": "reply",
         "position": {
-          "x": 1500.0,
-          "y": 160.0
+          "x": 1250.0,
+          "y": 0.0
         },
         "type": "output",
         "data": {
@@ -172,8 +172,8 @@
       {
         "id": "orders",
         "position": {
-          "x": 740.0,
-          "y": 560.0
+          "x": 750.0,
+          "y": 485.0
         },
         "type": "http_api",
         "data": {
@@ -198,8 +198,8 @@
       {
         "id": "helpdocs",
         "position": {
-          "x": 960.0,
-          "y": 560.0
+          "x": 1130.0,
+          "y": 485.0
         },
         "type": "knowledge",
         "data": {
@@ -223,8 +223,8 @@
       {
         "id": "memory",
         "position": {
-          "x": 1400.0,
-          "y": 560.0
+          "x": 940.0,
+          "y": 485.0
         },
         "type": "memory",
         "data": {

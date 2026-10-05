@@ -3,7 +3,7 @@
   ".gitignore": "cf8cab51f61df508",
   "DECISIONS.md": "2637be7711c7b7e4",
   "Makefile": "1d54b5e13a5fed90",
-  "PROMPT_PACK.md": "42aa7943a1e53179",
+  "PROMPT_PACK.md": "4435e4c7d44aa650",
   "README.md": "eebc87ebbd9aedc6",
   "backend/.dockerignore": "3c8db40f9c9e8a41",
   "backend/Dockerfile": "67a92f771f350d40",
@@ -61,5 +61,5 @@
   "frontend/src/lib/turns.ts": "9b340197d21e8518",
   "frontend/src/lib/types.ts": "cda82e72eaf11736",
   "frontend/tsconfig.json": "660673187abfb056",
-  "spec.json": "591c5b2c49f19e3d"
+  "spec.json": "7ad2db6e47d81cbf"
 }
