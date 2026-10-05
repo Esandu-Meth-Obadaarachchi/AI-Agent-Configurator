@@ -1,5 +1,6 @@
 # Agent Configurator: common tasks. `make help` lists them.
-PY ?= python3
+# Prefer the Python versions the project is tested on; fall back to python3.
+PY ?= $(shell command -v python3.12 || command -v python3.13 || command -v python3)
 VENV := .venv
 BIN := $(VENV)/bin
 

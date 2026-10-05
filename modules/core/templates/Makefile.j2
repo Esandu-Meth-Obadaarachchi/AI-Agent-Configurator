@@ -1,4 +1,6 @@
 # {{ project.name }}: common tasks. Run `make help` to list them.
+# Prefer the Python versions this project is tested on; fall back to python3.
+PY ?= $(shell command -v python3.12 || command -v python3.13 || command -v python3)
 .PHONY: help setup dev api{% if has_ui %} ui{% endif %} test lint up down{% if needs_postgres %} db{% endif %}{% if has_rag %} ingest{% endif %}
 
 
@@ -7,7 +9,7 @@ help:
 
 setup: ## Install backend{% if has_ui %} and frontend{% endif %} dependencies and create .env
 	test -f .env || cp .env.example .env
-	cd backend && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+	cd backend && $(PY) -m venv .venv && .venv/bin/pip install -e ".[dev]"
 {% if has_ui %}
 	cd frontend && npm install
 {% endif %}
