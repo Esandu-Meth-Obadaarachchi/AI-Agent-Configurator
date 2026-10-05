@@ -1,0 +1,165 @@
+{
+  "spec_version": "0.2",
+  "project": {
+    "name": "mcp-assistant",
+    "description": "A personal assistant with MCP tools and long-term memory of what you tell it."
+  },
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-opus-5-5",
+    "temperature": 0.2,
+    "effort": null,
+    "max_tokens": 4096
+  },
+  "backend": {
+    "language": "python"
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "start",
+        "position": {
+          "x": 0.0,
+          "y": 160.0
+        },
+        "type": "input",
+        "data": {
+          "label": "Chat input",
+          "notes": "",
+          "greeting": "Hi! What can I help you with?"
+        }
+      },
+      {
+        "id": "assistant",
+        "position": {
+          "x": 300.0,
+          "y": 160.0
+        },
+        "type": "agent",
+        "data": {
+          "label": "Assistant",
+          "notes": "",
+          "role": "General assistant with file access and memory.",
+          "system_prompt": "You are a helpful assistant. Remember durable facts the user shares (preferences, names, projects) and recall them when relevant.",
+          "model": null,
+          "temperature": null,
+          "effort": null,
+          "max_steps": 8
+        }
+      },
+      {
+        "id": "reply",
+        "position": {
+          "x": 600.0,
+          "y": 160.0
+        },
+        "type": "output",
+        "data": {
+          "label": "Reply",
+          "notes": ""
+        }
+      },
+      {
+        "id": "files",
+        "position": {
+          "x": 100.0,
+          "y": 440.0
+        },
+        "type": "mcp_server",
+        "data": {
+          "label": "Filesystem (MCP)",
+          "notes": "",
+          "server_name": "filesystem",
+          "transport": "stdio",
+          "command": "npx",
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-filesystem",
+            "/data"
+          ],
+          "url": ""
+        }
+      },
+      {
+        "id": "search",
+        "position": {
+          "x": 300.0,
+          "y": 440.0
+        },
+        "type": "web_search",
+        "data": {
+          "label": "Web search",
+          "notes": "",
+          "provider": "tavily",
+          "max_results": 5
+        }
+      },
+      {
+        "id": "memory",
+        "position": {
+          "x": 500.0,
+          "y": 440.0
+        },
+        "type": "memory",
+        "data": {
+          "label": "Memory",
+          "notes": "",
+          "short_term": "sqlite",
+          "long_term": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-start-out-assistant",
+        "source": "start",
+        "target": "assistant",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "e-assistant-out-reply",
+        "source": "assistant",
+        "target": "reply",
+        "sourceHandle": "out",
+        "targetHandle": "in"
+      },
+      {
+        "id": "a-files-assistant",
+        "source": "files",
+        "target": "assistant",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      },
+      {
+        "id": "a-search-assistant",
+        "source": "search",
+        "target": "assistant",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      },
+      {
+        "id": "a-memory-assistant",
+        "source": "memory",
+        "target": "assistant",
+        "sourceHandle": "attach",
+        "targetHandle": "tools"
+      }
+    ]
+  },
+  "ui": {
+    "framework": "nextjs",
+    "streaming": true,
+    "feedback": true,
+    "show_steps": true,
+    "title": ""
+  },
+  "deploy": {
+    "target": "docker_compose",
+    "backend_port": 8000,
+    "frontend_port": 3000
+  },
+  "observability": {
+    "langsmith": false
+  }
+}

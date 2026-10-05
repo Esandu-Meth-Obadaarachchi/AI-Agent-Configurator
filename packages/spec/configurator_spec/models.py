@@ -37,10 +37,17 @@ class Project(_Model):
 Provider = Literal["anthropic", "openai"]
 
 
+Effort = Literal["low", "medium", "high", "xhigh", "max"]
+
+
 class LLMConfig(_Model):
     provider: Provider = "anthropic"
-    model: str = "claude-sonnet-5-5"
+    model: str = "claude-opus-5-5"
+    # Claude Opus 5.5, Sonnet 5.5 and Fable reject sampling settings; the generated
+    # LLM factory only sends temperature to models that accept it.
     temperature: float = Field(default=0.2, ge=0, le=1)
+    # Reasoning effort for Claude models that support it. None = the model's default.
+    effort: Effort | None = None
     max_tokens: int = Field(default=4096, ge=256, le=64000)
 
 
@@ -94,6 +101,7 @@ class AgentData(_Data):
     system_prompt: str = Field(default="You are a helpful assistant. Use your tools when they help.", max_length=8000)
     model: str | None = None
     temperature: float | None = Field(default=None, ge=0, le=1)
+    effort: Effort | None = None
     max_steps: int = Field(default=8, ge=1, le=50)
 
 
